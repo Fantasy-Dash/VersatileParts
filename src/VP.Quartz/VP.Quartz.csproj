@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="3.6.2" />
+    <PackageReference Include="Quartz.Plugins" Version="3.6.2" />
+  </ItemGroup>
+
+</Project>
