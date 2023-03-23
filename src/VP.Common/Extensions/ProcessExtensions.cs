@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 
 namespace VP.Common.Extensions
 {
@@ -15,14 +13,14 @@ namespace VP.Common.Extensions
         /// </summary>
         /// <param name="switchToOtherProcess"></param>
         /// <returns></returns>
-        public static bool IsProcessUnique(this Process process)
+        public static bool IsProcessUnique(this Process process, out Process? otherProcess)
         {
             //查找其他进程 忽略vs调试会查找到的一些空线程进程
-            var otherProc = Process.GetProcessesByName(process.ProcessName)
+            otherProcess = Process.GetProcessesByName(process.ProcessName)
                 .Where(row => row.Id != process.Id
                               && !row.HasExited
                               && row.Threads.Count > 0).FirstOrDefault();
-            return otherProc is null;
+            return otherProcess is null;
         }
     }
 }

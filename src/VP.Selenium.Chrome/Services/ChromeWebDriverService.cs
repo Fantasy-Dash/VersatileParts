@@ -1,5 +1,6 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using System.Diagnostics;
 using VP.Common.Services.Interface;
 using VP.Selenium.Contracts.Services;
 using WebDriverManager;
@@ -7,7 +8,7 @@ using WebDriverManager.DriverConfigs.Impl;
 using WebDriverManager.Helpers;
 
 namespace VP.Selenium.Chrome.Services
-{//todo 注释
+{
     /// <summary>
     /// 浏览器驱动服务
     /// </summary>
@@ -82,8 +83,8 @@ namespace VP.Selenium.Chrome.Services
 
         public void ClearExceptionProcess()
         {
-            var exceptionProcessList = _processService.GetFiltedByCommandLine("--test-type=webdriver");
-            exceptionProcessList.ForEach(row => row.Kill());
+            var exceptionProcessList = _processService.GetFiltedByCommandLine(Process.GetProcesses(), "--test-type=webdriver");
+            exceptionProcessList.ToList().ForEach(row => row.Kill());
         }
 
         public void Dispose()

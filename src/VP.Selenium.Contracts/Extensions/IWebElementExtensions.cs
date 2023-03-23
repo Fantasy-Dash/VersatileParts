@@ -20,6 +20,10 @@ namespace VP.Selenium.Contracts.Extensions
         {
             return wait.Until(d => element.FindElement(elementIdentifier));
         }
+        public static IWebElement WaitElement(this IWebElement element, By elementIdentifier, WebDriverWait wait)
+        {
+            return element.WaitElement(wait, elementIdentifier);
+        }
 
         /// <summary>
         /// 等待列表元素

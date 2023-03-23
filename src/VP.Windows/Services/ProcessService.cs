@@ -7,22 +7,19 @@ namespace VP.Windows.Services
     [SupportedOSPlatform("windows")]
     public class ProcessService : Common.Services.ProcessService
     {
-        public override string GetCommandLine(Process process)
+        public override IEnumerable<Process> GetFiltedByCommandLine(IEnumerable<Process> processes, string filter)
         {
-            string commandLine = string.Empty;
+            var processIdList = new List<int>();
             try
             {
                 // 在 Windows 平台上使用 WMI 获取命令行参数
-                using var searcher = new ManagementObjectSearcher($"SELECT CommandLine FROM Win32_Process WHERE ProcessId = {process.Id}");
+                using var searcher = new ManagementObjectSearcher($"SELECT ProcessId FROM Win32_Process WHERE CommandLine Like '%{filter}%'");
                 using var QueryList = searcher.Get();
                 foreach (var item in QueryList)
-                {
-                    commandLine = item["CommandLine"]?.ToString()??string.Empty;
-                    break;
-                }
+                    processIdList.Add(Convert.ToInt32(item["ProcessId"]));
             }
             catch (NullReferenceException) { }
-            return commandLine;
+            return processes.Where(row => processIdList.Contains(row.Id));
         }
     }
 }
