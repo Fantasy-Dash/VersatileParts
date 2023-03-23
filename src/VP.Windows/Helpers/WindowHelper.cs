@@ -35,8 +35,8 @@ namespace VP.Windows.Wpf.Helper
             var windowIdList = EnumWindow(process);
             if (windowIdList.Count>0)
             {
-                ShowWindowAsync(windowIdList.First(), 8);//SW_SHOWNA
-                return SetForegroundWindow(windowIdList.First());
+                ShowWindowAsync(windowIdList.Last(), 8);//SW_SHOWNA
+                return SetForegroundWindow(windowIdList.Last());
             }
             return false;
         }

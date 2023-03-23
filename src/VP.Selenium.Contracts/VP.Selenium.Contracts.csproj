@@ -6,6 +6,10 @@
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DebugType>none</DebugType>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<PackageReference Include="Selenium.Support" Version="4.8.1" />
 		<PackageReference Include="WebDriverManager" Version="2.16.2" />
