@@ -89,7 +89,7 @@ namespace VP.Notifications.Toast.Services
         public void ClearAll(bool IsSkipExpireable)
         {
             if (!IsSkipExpireable)
-                History.Clear();
+                ToastNotificationManagerCompat.Uninstall();
             History.GetHistory().ToList().ForEach(row =>
             {
                 if (row.ExpirationTime>=DateTimeOffset.Now.AddHours(1))
