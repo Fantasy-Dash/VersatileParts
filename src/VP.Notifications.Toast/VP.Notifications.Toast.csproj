@@ -15,4 +15,8 @@
 		<PackageReference Include="CommunityToolkit.WinUI.Notifications" Version="7.1.2" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\VP.Common\VP.Common.csproj" />
+	</ItemGroup>
+
 </Project>
