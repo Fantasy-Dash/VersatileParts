@@ -111,11 +111,7 @@ namespace VP.Quartz.Services
 
         public async Task ScheduleJobsAsync(IScheduler scheduler, IReadOnlyDictionary<IJobDetail, IReadOnlyCollection<ITrigger>> jobsAndTriggerList) => await scheduler.ScheduleJobs(jobsAndTriggerList, true);
 
-        public async Task<DateTimeOffset> ScheduleTriggerAsync(IScheduler scheduler, IJobDetail job, ITrigger trigger)
-        {
-            return await scheduler.ScheduleJob(trigger);
-        }
-
+        public async Task<DateTimeOffset> ScheduleTriggerAsync(IScheduler scheduler, IJobDetail job, ITrigger trigger) => await scheduler.ScheduleJob(trigger);
 
 #pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
         public void Dispose() => Dispose(false);

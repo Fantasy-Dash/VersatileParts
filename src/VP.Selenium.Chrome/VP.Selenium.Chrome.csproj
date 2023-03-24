@@ -11,11 +11,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Folder Include="Models\" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <ProjectReference Include="..\VP.Selenium.Chromium\VP.Selenium.Chromium.csproj" />
+	  <ProjectReference Include="..\VP.Windows\VP.Windows.csproj" />
 	</ItemGroup>
 
 </Project>

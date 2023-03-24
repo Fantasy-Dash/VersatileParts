@@ -26,6 +26,8 @@ namespace VP.Quartz.Services.Interface
 
         public Task ScheduleJobsAsync(IScheduler scheduler, IReadOnlyDictionary<IJobDetail, IReadOnlyCollection<ITrigger>> jobsAndTriggerList);
 
+        public Task<DateTimeOffset> ScheduleTriggerAsync(IScheduler scheduler, IJobDetail job, ITrigger trigger);
+
         public void Dispose(bool waitForJobsToComplete);
     }
 }
