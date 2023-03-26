@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Versioning;
 using VP.Common.Services;
 using VP.Common.Services.Interface;
@@ -11,7 +10,7 @@ namespace VP.Common.Extensions
     public static class ServiceCollectionExtensions
     {
         [UnsupportedOSPlatform("windows")]
-        public static ServiceCollection AddVPOSPlatformService(this ServiceCollection services)
+        public static IServiceCollection AddVPOSPlatformService(this IServiceCollection services)
         {
             services.TryAddSingleton<ISystemService, SystemService>();
             services.TryAddSingleton<IProcessService, ProcessService>();
