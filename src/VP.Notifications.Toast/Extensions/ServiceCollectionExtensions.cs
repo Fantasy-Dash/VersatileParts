@@ -7,7 +7,7 @@ namespace VP.Notifications.Toast.Extensions
     //todo 注释
     public static class ServiceCollectionExtensions
     {
-        public static ServiceCollection AddVPToast(this ServiceCollection services)
+        public static IServiceCollection AddVPToast(this IServiceCollection services)
         {
             if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 17763, 0))//1809
                 services.TryAddSingleton<IToastService, ToastService>();

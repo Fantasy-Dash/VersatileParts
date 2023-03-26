@@ -9,7 +9,7 @@ namespace VP.Quartz.Extensions
     //todo 注释
     public static class ServiceCollectionExtensions
     {
-        public static ServiceCollection AddVPQuartz(this ServiceCollection services, QuartzOptions? options = null)
+        public static IServiceCollection AddVPQuartz(this IServiceCollection services, QuartzOptions? options = null)
         {
             if (!services.Any(row => row.ServiceType.Equals(typeof(ISchedulerFactory))))
             {
