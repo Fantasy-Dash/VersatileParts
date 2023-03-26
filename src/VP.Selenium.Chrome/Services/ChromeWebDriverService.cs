@@ -37,10 +37,10 @@ namespace VP.Selenium.Chrome.Services
             }
         }
 
-        public async Task<ChromeDriver> CreateAsync(string browserName, DriverOptions driverOptions, DriverService? driverService = null, bool isHideCommandWindow = true)
+        public Task<ChromeDriver> CreateAsync(string browserName, DriverOptions driverOptions, DriverService? driverService = null, bool isHideCommandWindow = true)
         {
             //使用第三方包配置驱动
-            return await Task.Run(() =>
+            return Task.Run(() =>
                {
                    lock (_lock)
                    {
