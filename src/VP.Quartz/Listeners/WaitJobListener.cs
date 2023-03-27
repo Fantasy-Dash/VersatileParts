@@ -8,11 +8,20 @@ namespace VP.Quartz.Listeners
         private readonly ManualResetEvent manualResetEvent = new(false);
 
         private readonly string name = Guid.NewGuid().ToString();
+        private int exceptionRefireCount = 0;
 
         public override string Name { get => name; }
 
         public override Task JobWasExecuted(IJobExecutionContext context, JobExecutionException? jobException, CancellationToken cancellationToken = default)
         {
+            if (jobException!=null)
+            {
+                if (exceptionRefireCount>=3)
+                    throw jobException.GetBaseException();
+                exceptionRefireCount++;
+                jobException.RefireImmediately=true;
+                return Task.CompletedTask;
+            }
             manualResetEvent.Set();
             return Task.CompletedTask;
         }
