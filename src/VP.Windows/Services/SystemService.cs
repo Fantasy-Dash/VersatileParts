@@ -18,8 +18,9 @@ namespace VP.Windows.Services
             using var queryCollection = searcher.Get();
             foreach (var m in queryCollection)
             {
-                if (m["InstallDate"].ToString()!=null)
-                    return ManagementDateTimeConverter.ToDateTime(m["InstallDate"]?.ToString() ?? string.Empty);
+                var dateTimeStr = m["InstallDate"].ToString();
+                if (!string.IsNullOrWhiteSpace(dateTimeStr))
+                    return ManagementDateTimeConverter.ToDateTime(dateTimeStr);
             }
             return DateTime.MinValue;
         }
@@ -31,7 +32,10 @@ namespace VP.Windows.Services
             using var searcher = new ManagementObjectSearcher(query);
             using var queryCollection = searcher.Get();
             foreach (var item in queryCollection)
-                return item["UUID"]?.ToString()??string.Empty;
+                if (item["UUID"] != null)
+                    uuid= item["UUID"].ToString()??string.Empty;
+            if (string.IsNullOrWhiteSpace(uuid))
+                throw new ManagementException();
             return uuid;
         }
     }

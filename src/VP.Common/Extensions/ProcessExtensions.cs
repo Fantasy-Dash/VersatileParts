@@ -13,14 +13,18 @@ namespace VP.Common.Extensions
         /// </summary>
         /// <param name="switchToOtherProcess"></param>
         /// <returns></returns>
-        public static bool IsProcessUnique(this Process process, out Process? otherProcess)
+        public static bool IsProcessUnique(this Process process, out Process uniqueProcess)
         {
             //查找其他进程 忽略vs调试会查找到的一些空线程进程
-            otherProcess = Process.GetProcessesByName(process.ProcessName)
+            var processList = Process.GetProcessesByName(process.ProcessName)
                 .Where(row => row.Id != process.Id
                               && !row.HasExited
-                              && row.Threads.Count > 0).FirstOrDefault();
-            return otherProcess is null;
+                              && row.Threads.Count > 0).ToList();
+            if (processList.Count>0)
+                uniqueProcess=processList.First();
+            else
+                uniqueProcess = process;
+            return processList.Count == 0;
         }
     }
 }
