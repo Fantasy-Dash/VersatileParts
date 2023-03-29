@@ -42,14 +42,22 @@ namespace VP.Common.Helpers
         /// <summary>
         /// 等待文件释放
         /// </summary>
-        /// <param name="filePath"></param>
+        /// <param name="filePath">文件路径</param>
+        /// <param name="ignoreFileNotFound">跳过找不到的文件</param>
         /// <returns></returns>
         /// <exception cref="FileNotFoundException">文件不存在: <paramref name="filePath"/> </exception>
-        public static async Task WaitForFileReleaseAsync(string filePath)
+        public static async Task WaitForFileReleaseAsync(string filePath, bool ignoreFileNotFound = true)
         {
             // 确保文件存在
+
             if (!File.Exists(filePath))
-                throw new FileNotFoundException("文件不存在", filePath);
+            {
+                if (!ignoreFileNotFound)
+                    throw new FileNotFoundException("文件不存在", filePath);
+                else return;
+
+            }
+
             // 等待文件解除占用
             while (true)
             {
@@ -66,6 +74,32 @@ namespace VP.Common.Helpers
             }
         }
 
+        //todo 注释
+        /// <inheritdoc cref="Directory.CreateDirectory(string)" path="/*[not(name()='returns')]" />
+        public static IEnumerable<string> GetDirectoryFile(string path, IEnumerable<string>? ignorePath, IEnumerable<string>? ignoreFile)
+        {
+            var ret = new List<string>();
+            var files = Directory.GetFiles(path, "*", SearchOption.AllDirectories);
+            files.AsParallel().WithDegreeOfParallelism(20).ForAll(file =>
+            {
+                var relativePath = Path.GetRelativePath(path, file);
+                var isSkip = false;
+                if (relativePath.IndexOf(@"\") > -1 && ignorePath != null)
+                    foreach (var item in ignorePath)
+                        if (relativePath.StartsWith(item))
+                            isSkip = true;
+                if (!isSkip && ignoreFile != null)
+                    foreach (var item in ignoreFile)
+                        if (relativePath.EndsWith(item))
+                            isSkip = true;
+                if (!isSkip)
+                {
+                    ret.Add(file);
+                }
+            });
+            return ret;
+        }
+
         /// <summary>
         /// 替换目录文件
         /// </summary>
@@ -79,7 +113,7 @@ namespace VP.Common.Helpers
             Directory.CreateDirectory(sourcePath);
             Directory.CreateDirectory(targetPath);
             var files = Directory.GetFiles(sourcePath, "*", SearchOption.AllDirectories);
-            files.AsParallel().WithDegreeOfParallelism(20).ForAll(async file =>
+            files.AsParallel().WithDegreeOfParallelism(20).ForAll(file =>
             {
                 var relativePath = Path.GetRelativePath(sourcePath, file);
                 var isSkip = false;
@@ -93,7 +127,7 @@ namespace VP.Common.Helpers
                             isSkip = true;
                 if (!isSkip)
                 {
-                    await WaitForFileReleaseAsync(Path.Combine(targetPath, Path.GetFileName(file))).ConfigureAwait(false);
+                    WaitForFileReleaseAsync(Path.Combine(targetPath, Path.GetFileName(file))).ConfigureAwait(false).GetAwaiter().GetResult();
                     File.Copy(file, Path.Combine(targetPath, Path.GetFileName(file)), true);
                     File.Delete(file);
                 }
@@ -114,7 +148,7 @@ namespace VP.Common.Helpers
         public static void DeletedirectoryFile(string path, IEnumerable<string> needDeleteFilePath, IEnumerable<string>? ignorePath, IEnumerable<string>? ignoreFile)
         {
             Directory.CreateDirectory(path);
-            needDeleteFilePath.AsParallel().WithDegreeOfParallelism(20).ForAll(async deleteFilePath =>
+            needDeleteFilePath.AsParallel().WithDegreeOfParallelism(20).ForAll(deleteFilePath =>
             {
                 var filePath = Path.GetFullPath(deleteFilePath);
                 var relativePath = Path.GetRelativePath(path, filePath);
@@ -129,7 +163,8 @@ namespace VP.Common.Helpers
                             isSkip = true;
                 if (!isSkip)
                 {
-                    await WaitForFileReleaseAsync(Path.Combine(path, Path.GetFileName(filePath))).ConfigureAwait(false);
+                    WaitForFileReleaseAsync(Path.Combine(path, Path.GetFileName(filePath)))
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
                     File.Delete(filePath);
                 }
             });
