@@ -49,9 +49,18 @@ namespace VP.Selenium.Chrome.Services
                        if (driverOptions is not ChromeOptions)
                            throw new ArgumentException($"参数:{nameof(driverOptions)}的类型必须为:{nameof(ChromeOptions)}");
                        var driver = new ChromeDriver(service, (ChromeOptions)driverOptions);
-                       Drivers.Add(browserName, driver);
-                       _driverDic.Add(driver, service);
-                       return driver;
+                       try
+                       {
+                           Drivers.Add(browserName, driver);
+                           _driverDic.Add(driver, service);
+                           return driver;
+                       }
+                       catch
+                       {
+                           driver.Quit();
+                           service.Dispose();
+                           throw;
+                       }
                    }
                });
         }
@@ -106,6 +115,7 @@ namespace VP.Selenium.Chrome.Services
             {
                 if (Drivers.TryGetValue(browserName, out var driver))
                 {
+                    driver.Quit();
                     driver.Dispose();
                     var serviceCount = _driverDic.Count(row => row.Value.Equals(_driverDic[driver]));
                     if (serviceCount<=1)
