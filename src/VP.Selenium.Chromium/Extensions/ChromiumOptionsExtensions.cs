@@ -1,4 +1,6 @@
-﻿using OpenQA.Selenium.Chrome;
+﻿using Microsoft.Extensions.Options;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 
 namespace VP.Selenium.Chromium.Extensions
 {
@@ -10,7 +12,7 @@ namespace VP.Selenium.Chromium.Extensions
         {
             var opt = new ChromeOptions();
             opt.AddArgument("--disable-popup-blocking");//禁用弹出拦截
-            opt.AddArgument("no-sandbox");//沙盒模式运行
+            opt.AddArgument("--no-sandbox");//沙盒模式运行
             opt.AddArgument("disable-extensions");//禁用扩展程序
             opt.AddArgument("no-default-browser-check");//不检查默认浏览器
             return opt;
@@ -19,8 +21,18 @@ namespace VP.Selenium.Chromium.Extensions
         public static ChromeOptions AddHeadlessArgument(this ChromeOptions opt)
         {
             opt.AddArgument("--headless");//无界面
-            opt.AddArgument("--start-maximized");//最大化启动
-            opt.AddArgument("window-size=1920x1080");//设置窗口尺寸
+            return opt;
+        }
+
+        public static ChromeOptions Add1080Argument(this ChromeOptions opt)
+        {
+            opt.AddArgument("window-size=1920,1080");//设置窗口尺寸
+            return opt;
+        }
+
+        public static ChromeOptions AddHardDriveCache(this ChromeOptions opt)
+        {
+            opt.AddArgument("--disable-dev-shm-usage");
             return opt;
         }
 
