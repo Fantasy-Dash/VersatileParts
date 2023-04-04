@@ -5,7 +5,7 @@ namespace VP.Quartz.Listeners
 {
     public class WaitJobListener : JobListenerSupport, IDisposable
     {
-        private readonly ManualResetEvent manualResetEvent = new(false);
+        private readonly AutoResetEvent re = new(false);
 
         private readonly string name = Guid.NewGuid().ToString();
         private int exceptionRefireCount = 0;
@@ -22,18 +22,18 @@ namespace VP.Quartz.Listeners
                 jobException.RefireImmediately=true;
                 return Task.CompletedTask;
             }
-            manualResetEvent.Set();
+            re.Set();
             return Task.CompletedTask;
         }
 
         public void WaitForJobToComplete()
         {
-            manualResetEvent.WaitOne();
+            re.WaitOne();
         }
 
         public void Dispose()
         {
-            manualResetEvent.Dispose();
+            re.Dispose();
             GC.SuppressFinalize(this);
         }
     }
