@@ -24,7 +24,7 @@ namespace VP.Selenium.Chromium.Extensions
             return opt;
         }
 
-        public static ChromeOptions Add1080Argument(this ChromeOptions opt)
+        public static ChromeOptions Add1080ResolutionArgument(this ChromeOptions opt)
         {
             opt.AddArgument("window-size=1920,1080");//设置窗口尺寸
             return opt;

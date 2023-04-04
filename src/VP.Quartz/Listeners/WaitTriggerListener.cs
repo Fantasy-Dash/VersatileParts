@@ -5,7 +5,7 @@ namespace VP.Quartz.Listeners
 {
     public class WaitTriggerListener : TriggerListenerSupport, IDisposable
     {
-        private readonly ManualResetEvent manualResetEvent = new(false);
+        private readonly AutoResetEvent re = new(false);
 
         private readonly string name = Guid.NewGuid().ToString();
 
@@ -13,18 +13,18 @@ namespace VP.Quartz.Listeners
 
         public override Task TriggerComplete(ITrigger trigger, IJobExecutionContext context, SchedulerInstruction triggerInstructionCode, CancellationToken cancellationToken = default)
         {
-            manualResetEvent.Set();
+            re.Set();
             return Task.CompletedTask;
         }
 
         public void WaitForJobToComplete()
         {
-            manualResetEvent.WaitOne();
+            re.WaitOne();
         }
 
         public void Dispose()
         {
-            manualResetEvent.Dispose();
+            re.Dispose();
             GC.SuppressFinalize(this);
         }
     }

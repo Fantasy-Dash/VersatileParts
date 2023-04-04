@@ -12,7 +12,7 @@ namespace VP.Office.Helpers
             var ret = new List<ISheet>();
             try
             {
-                using var fs = new FileStream(filePath, FileMode.Open);
+                using var fs = new FileStream(filePath, FileMode.Open,FileAccess.Read,FileShare.Read);
                 var xssWorkbook = new HSSFWorkbook(fs);
                 for (int i = 0; i < xssWorkbook.NumberOfSheets; i++)
                     ret.Add(xssWorkbook.GetSheetAt(i));
@@ -27,23 +27,25 @@ namespace VP.Office.Helpers
             return ret;
         }
 
-        public static IRow ReadHeadRow(ISheet sheet) => sheet.GetRow(0);
-
-        public static IEnumerable<ICell> ReadRowToList(IRow row, int startIndex = 0)
+        /// <summary>
+        /// 将字母串转换为数字
+        /// </summary>
+        /// <param name="letters">要转换的字母串</param>
+        /// <returns>转换后的数字</returns>
+        public static int GetColumnIndexFromLetters(string? letters)
         {
-            var ret = new List<ICell>();
-            for (int i = startIndex; i <= row.LastCellNum; i++)
-                ret.Add(row.GetCell(i));
-            return ret;
+            if (string.IsNullOrWhiteSpace(letters))
+                throw new ArgumentException(null, nameof(letters));
+            int result = 0;
+            int power = 1;
+            for (int i = letters.Length - 1; i >= 0; i--)//倒序遍历
+            {
+                char letter = letters[i];
+                int value = letter - 'A' + 1; // 将字母转换为数字（A对应1，B对应2，以此类推）
+                result += value * power;
+                power *= 26;
+            }
+            return result - 1;
         }
-
-        public static IEnumerable<ICell> ReadColumnToList(ISheet sheet, int startIndex = 0, int columnIndex = 0)
-        {
-            var ret = new List<ICell>();
-            for (int i = startIndex; i <= sheet.LastRowNum; i++)
-                ret.Add(sheet.GetRow(i).GetCell(columnIndex));
-            return ret;
-        }
-
     }
 }
