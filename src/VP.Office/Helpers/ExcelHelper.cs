@@ -2,6 +2,7 @@
 using NPOI.POIFS.FileSystem;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
+using System.Text;
 
 namespace VP.Office.Helpers
 {//todo 注释
@@ -12,17 +13,25 @@ namespace VP.Office.Helpers
             var ret = new List<ISheet>();
             try
             {
-                using var fs = new FileStream(filePath, FileMode.Open,FileAccess.Read,FileShare.Read);
-                var xssWorkbook = new HSSFWorkbook(fs);
-                for (int i = 0; i < xssWorkbook.NumberOfSheets; i++)
-                    ret.Add(xssWorkbook.GetSheetAt(i));
+                var workbook = new XSSFWorkbook(new FileInfo(filePath));
+                for (int i = 0; i < workbook.NumberOfSheets; i++)
+                    ret.Add(workbook.GetSheetAt(i));
+                workbook.Dispose();
             }
             catch (OfficeXmlFileException)
             {
-                var file = new FileInfo(filePath);
-                var xssWorkbook = new XSSFWorkbook(file);
-                for (int i = 0; i < xssWorkbook.NumberOfSheets; i++)
-                    ret.Add(xssWorkbook.GetSheetAt(i));
+                var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                try
+                {
+                    IWorkbook workbook = new HSSFWorkbook(fs);
+                    for (int i = 0; i < workbook.NumberOfSheets; i++)
+                        ret.Add(workbook.GetSheetAt(i));
+                    workbook.Dispose();
+                }
+                finally
+                {
+                    fs.Dispose();
+                }
             }
             return ret;
         }
@@ -32,7 +41,7 @@ namespace VP.Office.Helpers
         /// </summary>
         /// <param name="letters">要转换的字母串</param>
         /// <returns>转换后的数字</returns>
-        public static int GetColumnIndexFromLetters(string? letters)
+        public static int GetColumnIndexFromColumnLetters(string? letters)
         {
             if (string.IsNullOrWhiteSpace(letters))
                 throw new ArgumentException(null, nameof(letters));
@@ -46,6 +55,25 @@ namespace VP.Office.Helpers
                 power *= 26;
             }
             return result - 1;
+        }
+
+        /// <summary>
+        /// 将数字转换为字母串
+        /// </summary>
+        /// <param name="index">要转换的数字</param>
+        /// <returns>转换后的字母串</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/>不能为负数</exception>
+        public static string GetColumnLettersFromColumnIndex(int index)
+        {
+            if (index<0) throw new ArgumentOutOfRangeException(nameof(index));
+            var result = new StringBuilder();
+            while (index/26>0)
+            {
+                _=result.Append((char)((index/26)+'A'-1));
+                index%=26;
+            }
+            _=result.Append((char)(index+'A'));
+            return result.ToString();
         }
     }
 }
