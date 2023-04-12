@@ -8,12 +8,13 @@ namespace VP.Common.Helpers
     public static class FileHelper
     {
         /// <summary>
-        /// 读取文件流 返回指定类型数据
+        /// 读取文件或文件流 返回指定类型数据
         /// </summary>
         /// <typeparam name="T">输出类型</typeparam>
         /// <param name="fileStream">文件流</param>
+        /// <returns>指定类型数据</returns>
         /// <inheritdoc cref="StreamReader(Stream)"/>
-        /// <inheritdoc cref="StreamReader.ReadToEnd()"/>>
+        /// <inheritdoc cref="StreamReader.ReadToEnd()"/>
         /// <inheritdoc cref="JsonNode.Parse(Stream, JsonNodeOptions?, System.Text.Json.JsonDocumentOptions)"/>
         public static T? ReadToType<T>(FileStream fileStream)
         {
@@ -30,7 +31,7 @@ namespace VP.Common.Helpers
         }
 
         /// <param name="path">文件路径</param>
-        /// <inheritdoc cref="ReadToType{T}(FileStream)"/>>
+        /// <inheritdoc cref="ReadToType{T}(FileStream)"/>
         /// <inheritdoc cref="FileStream(string,FileMode)"/>
         public static T? ReadToType<T>(string path)
         {
@@ -39,13 +40,37 @@ namespace VP.Common.Helpers
             return default;
         }
 
+
+        /// <summary>
+        /// 文件是否被占用
+        /// </summary>
+        /// <param name="filePath">文件路径</param>
+        /// <returns>文件被占用则返回<c>True</c></returns>
+        /// <inheritdoc cref="FileStream(string,FileMode,FileAccess,FileShare)"/>
+        public static bool IsFileUsing(string filePath)
+        {
+            if (!File.Exists(filePath))
+                return false;
+            
+            try
+            {
+                using var s = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            }
+            catch (IOException)
+            {
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>
         /// 等待文件释放
         /// </summary>
         /// <param name="filePath">文件路径</param>
         /// <param name="ignoreFileNotFound">跳过找不到的文件</param>
-        /// <returns></returns>
+        /// <returns>可等待任务</returns>
         /// <exception cref="FileNotFoundException">文件不存在: <paramref name="filePath"/> </exception>
+        /// <inheritdoc cref="FileStream(string,FileMode,FileAccess,FileShare)"/>
         public static async Task WaitForFileReleaseAsync(string filePath, bool ignoreFileNotFound = true)
         {
             // 确保文件存在
@@ -55,7 +80,6 @@ namespace VP.Common.Helpers
                 if (!ignoreFileNotFound)
                     throw new FileNotFoundException("文件不存在", filePath);
                 else return;
-
             }
 
             // 等待文件解除占用
@@ -74,9 +98,17 @@ namespace VP.Common.Helpers
             }
         }
 
-        //todo 注释
-        /// <inheritdoc cref="Directory.CreateDirectory(string)" path="/*[not(name()='returns')]" />
-        public static IEnumerable<string> GetDirectoryFile(string path, IEnumerable<string>? ignorePath, IEnumerable<string>? ignoreFile)
+        /// <summary>
+        /// 获取文件夹中所有文件
+        /// </summary>
+        /// <param name="path">目标路径</param>
+        /// <param name="ignorePath">要忽略的目录</param>
+        /// <param name="ignoreFile">要忽略的文件</param>
+        /// <returns>文件夹中的所有文件 包含子文件夹中的文件</returns>
+        /// <inheritdoc cref="Directory.GetFiles(string, string, EnumerationOptions)"/>
+        /// <inheritdoc cref="Path.GetRelativePath(string, string)"/>
+        /// <inheritdoc cref="ParallelEnumerable.ForAll{TSource}(ParallelQuery{TSource}, Action{TSource})"/>
+        public static IEnumerable<string> GetDirectoryFile(string path, IEnumerable<string>? ignorePath = null, IEnumerable<string>? ignoreFile = null)
         {
             var ret = new List<string>();
             var files = Directory.GetFiles(path, "*", SearchOption.AllDirectories);
@@ -93,9 +125,7 @@ namespace VP.Common.Helpers
                         if (relativePath.EndsWith(item))
                             isSkip = true;
                 if (!isSkip)
-                {
                     ret.Add(file);
-                }
             });
             return ret;
         }
@@ -108,6 +138,8 @@ namespace VP.Common.Helpers
         /// <param name="ignorePath">忽略的子目录</param>
         /// <param name="ignoreFile">忽略的文件</param>
         /// <inheritdoc cref="Directory.CreateDirectory(string)" path="/*[not(name()='returns')]" />
+        /// <inheritdoc cref="Path.GetRelativePath(string, string)" path="/*[not(name()='returns')]" />
+        /// <inheritdoc cref="ParallelEnumerable.ForAll{TSource}(ParallelQuery{TSource}, Action{TSource})" path="/*[not(name()='returns')]" />
         public static void ReplaceDirectoryFile(string sourcePath, string targetPath, IEnumerable<string>? ignorePath, IEnumerable<string>? ignoreFile)
         {
             Directory.CreateDirectory(sourcePath);
@@ -143,7 +175,6 @@ namespace VP.Common.Helpers
         /// <param name="ignoreFile">忽略的文件</param>
         /// <inheritdoc cref="Directory.CreateDirectory(string)" path="/*[not(name()='returns')]" />
         /// <inheritdoc cref="Path.GetFullPath(string)" path="/*[not(name()='returns')]" />
-        /// <inheritdoc cref="File.Delete(string)" path="/*[not(name()='returns')]" />
         /// <inheritdoc cref="ParallelEnumerable.ForAll{TSource}(ParallelQuery{TSource}, Action{TSource})" path="/*[not(name()='returns')]" />
         public static void DeletedirectoryFile(string path, IEnumerable<string> needDeleteFilePath, IEnumerable<string>? ignorePath, IEnumerable<string>? ignoreFile)
         {
