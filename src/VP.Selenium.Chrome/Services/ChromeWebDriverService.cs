@@ -1,5 +1,6 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using VP.Common.Services.Interface;
 using VP.Selenium.Contracts.Services;
@@ -49,6 +50,12 @@ namespace VP.Selenium.Chrome.Services
                        if (driverOptions is not ChromeOptions)
                            throw new ArgumentException($"参数:{nameof(driverOptions)}的类型必须为:{nameof(ChromeOptions)}");
                        var driver = new ChromeDriver(service, (ChromeOptions)driverOptions);
+                       var capabilitity = (Dictionary<string, object>)driverOptions.ToCapabilities().GetCapability("goog:chromeOptions");
+                       _=capabilitity.TryGetValue("args", out var args);
+                       _=capabilitity.TryGetValue("prefs", out var prefs);
+                       if (args!=null && ((ReadOnlyCollection<string>)args).Contains("--headless"))
+                           if (prefs!=null&&((Dictionary<string, object>)prefs).TryGetValue("download.default_directory", out var downloadPath))
+                               driver.ExecuteCdpCommand("Page.setDownloadBehavior", new() { { "behavior", "allow" }, { "downloadPath", downloadPath } });
                        try
                        {
                            Drivers.Add(browserName, driver);
@@ -92,8 +99,27 @@ namespace VP.Selenium.Chrome.Services
 
         public void ClearExceptionProcess()
         {
-            var exceptionProcessList = _processService.GetFiltedByCommandLine(Process.GetProcesses(), "--test-type=webdriver");
-            exceptionProcessList.ToList().ForEach(row => row.Kill());
+            var processList = Process.GetProcesses();
+            var chromeTestProcessList = _processService.GetFiltedByCommandLine(Process.GetProcesses(), "--test-type=webdriver");
+            var processIdAndParentProcessIdList = _processService.GetProcessIdAndParentProcessIdList(chromeTestProcessList).ToList();
+            foreach (var item in processIdAndParentProcessIdList)
+            {
+                var parentProcess = processList.FirstOrDefault(p => p.Id.Equals(item.Value));
+                if (parentProcess is null||parentProcess.Id<=4 ||parentProcess.HasExited)
+                {
+                    var process = processList.FirstOrDefault(p => p.Id.Equals(item.Key));
+
+                    if (process!=null)
+                    {
+                        process.Refresh();
+                        if (!process.HasExited)
+                            process.Kill();
+                    }
+                }
+            };
+            processIdAndParentProcessIdList=null;
+            chromeTestProcessList=null;
+            processList=null;
         }
 
         public void Dispose()
