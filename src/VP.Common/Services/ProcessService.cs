@@ -9,7 +9,7 @@ namespace VP.Common.Services
     public class ProcessService : IProcessService
     {
 
-        public virtual IEnumerable<Process> GetFiltedByCommandLine(IEnumerable<Process> processes, string filter)
+        public IEnumerable<Process> GetFiltedByCommandLine(IEnumerable<Process> processes, string filter)
         {
             // 筛选符合条件的进程
             return processes.Where(process =>
@@ -26,6 +26,37 @@ namespace VP.Common.Services
                 // 正则表达式匹配命令行参数
                 return commandLine != null && Regex.IsMatch(commandLine, $@"\b{filter}\b", RegexOptions.IgnoreCase);
             }).ToList();
+        }
+
+        public int GetParentProcessId(Process process) => GetParentProcessId(process.Id);
+        public int GetParentProcessId(int processId)
+        {
+            int parentId = 0;
+            try
+            {
+                using var reader = new StreamReader($"/proc/{processId}/stat");
+                string[] fields = reader.ReadToEnd().Split(' ');
+                parentId = Convert.ToInt32(fields[3]);
+            }
+            catch { }
+
+            return parentId;
+        }
+
+        public IEnumerable<KeyValuePair<int, int>> GetProcessIdAndParentProcessIdList(IEnumerable<int> processIdList)
+        {
+            var ret = new List<KeyValuePair<int, int>>();
+            foreach (var item in processIdList)
+                ret.Add(new KeyValuePair<int,int>(item, GetParentProcessId(item)));
+            return ret;
+        }
+
+        public IEnumerable<KeyValuePair<int, int>> GetProcessIdAndParentProcessIdList(IEnumerable<Process> processList)
+        {
+            var ret = new List<KeyValuePair<int, int>>();
+            foreach (var item in processList)
+                ret.Add(new KeyValuePair<int, int>(item.Id, GetParentProcessId(item.Id)));
+            return ret;
         }
     }
 }
