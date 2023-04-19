@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.WinUI.Notifications;
 using Windows.UI.Notifications;
 
-namespace VP.Notifications.Toast.Model
+namespace VP.Notifications.Toast.Models
 {
     public class ToastContentModel
     {

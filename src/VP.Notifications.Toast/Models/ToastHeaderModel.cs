@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace VP.Notifications.Toast.Model
+namespace VP.Notifications.Toast.Models
 {
     /// <summary>
     /// 通知头模型 用于通知分组 设置标题
