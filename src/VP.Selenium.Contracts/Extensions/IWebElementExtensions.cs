@@ -1,6 +1,9 @@
 ﻿using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Support.Extensions;
 using OpenQA.Selenium.Support.UI;
 using System.Collections.ObjectModel;
+using System.Text;
 
 namespace VP.Selenium.Contracts.Extensions
 {
@@ -20,10 +23,26 @@ namespace VP.Selenium.Contracts.Extensions
         {
             return wait.Until(d => element.FindElement(elementIdentifier));
         }
+        /// <inheritdoc cref="WaitElement(IWebElement, WebDriverWait, By)"/>
         public static IWebElement WaitElement(this IWebElement element, By elementIdentifier, WebDriverWait wait)
         {
             return element.WaitElement(wait, elementIdentifier);
         }
+
+        //todo注释
+        public static string GetAllText(this IWebElement element)
+        {
+            var sb = new StringBuilder();
+            element.FindElements(By.XPath("*")).ToList().ForEach(row =>sb.Append(row.Text));
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 使用JavaScript方法点击元素
+        /// </summary>
+        /// <param name="element">页面元素</param>
+        /// <param name="driver">web驱动</param>
+        public static void ClickSafely(this IWebElement element, IWebDriver driver) => driver.ExecuteJavaScript("arguments[0].click();", element);
 
         /// <summary>
         /// 等待列表元素

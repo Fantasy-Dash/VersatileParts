@@ -14,7 +14,7 @@ namespace VP.Selenium.Contracts.Extensions
             wait.Until(d => d.FindElement(elementIdentifier));
 
         /// <inheritdoc cref="IWebElementExtensions.WaitElementList(IWebElement, By, WebDriverWait, int)"/>
-        public static ReadOnlyCollection<IWebElement> WaitElementList(this WebDriverWait wait, By elementIdentifier, int needCount = 0)
+        public static ReadOnlyCollection<IWebElement> WaitElementList(this WebDriverWait wait, By elementIdentifier, int needCount = 1)
         {
             return wait.Until(d =>
             {
@@ -25,6 +25,22 @@ namespace VP.Selenium.Contracts.Extensions
                 }
                 throw new NoSuchElementException();
             });
+        }
+
+        //todo 注释
+        public static IWebElement WaitClickableElement(this WebDriverWait wait, By by)
+        {
+            return wait.Until(d =>
+            {
+                var targetElement = wait.WaitElementList(by).Last();
+                while (!targetElement.Displayed)
+                {
+                    Task.Delay(50).GetAwaiter().GetResult();
+                    targetElement=wait.WaitElementList(by).Last();
+                }
+                return targetElement;
+            });
+
         }
     }
 }
