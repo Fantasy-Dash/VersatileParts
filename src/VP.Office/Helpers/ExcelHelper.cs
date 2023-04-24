@@ -36,6 +36,34 @@ namespace VP.Office.Helpers
             return ret;
         }
 
+        public static IEnumerable<ISheet> ReadStreamToSheetList(Stream stream)
+        {
+            var ret = new List<ISheet>();
+            try
+            {
+                var workbook = new XSSFWorkbook(stream);
+                for (int i = 0; i < workbook.NumberOfSheets; i++)
+                    ret.Add(workbook.GetSheetAt(i));
+                workbook.Dispose();
+                stream.Dispose();
+            }
+            catch (OfficeXmlFileException)
+            {
+                try
+                {
+                    IWorkbook workbook = new HSSFWorkbook(stream);
+                    for (int i = 0; i < workbook.NumberOfSheets; i++)
+                        ret.Add(workbook.GetSheetAt(i));
+                    workbook.Dispose();
+                }
+                finally
+                {
+                    stream.Dispose();
+                }
+            }
+            return ret;
+        }
+
         /// <summary>
         /// 将字母串转换为数字
         /// </summary>
