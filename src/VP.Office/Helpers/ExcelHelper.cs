@@ -1,6 +1,7 @@
 ﻿using NPOI.HSSF.UserModel;
 using NPOI.POIFS.FileSystem;
 using NPOI.SS.UserModel;
+using NPOI.XSSF.Streaming;
 using NPOI.XSSF.UserModel;
 using System.Text;
 
@@ -14,6 +15,7 @@ namespace VP.Office.Helpers
             try
             {
                 var workbook = new XSSFWorkbook(new FileInfo(filePath));
+                workbook.GetCreationHelper().CreateFormulaEvaluator().EvaluateAll();
                 for (int i = 0; i < workbook.NumberOfSheets; i++)
                     ret.Add(workbook.GetSheetAt(i));
                 workbook.Dispose();
@@ -24,6 +26,7 @@ namespace VP.Office.Helpers
                 try
                 {
                     IWorkbook workbook = new HSSFWorkbook(fs);
+                    workbook.GetCreationHelper().CreateFormulaEvaluator().EvaluateAll();
                     for (int i = 0; i < workbook.NumberOfSheets; i++)
                         ret.Add(workbook.GetSheetAt(i));
                     workbook.Dispose();
