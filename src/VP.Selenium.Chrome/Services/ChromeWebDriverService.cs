@@ -19,6 +19,7 @@ namespace VP.Selenium.Chrome.Services
         private static readonly object _lock = new();
         private readonly Dictionary<ChromeDriver, ChromeDriverService> _driverDic = new();
         private readonly IProcessService _processService;
+        private readonly string _processName = "chrome";
 
         public ChromeWebDriverService(IProcessService processService)
         {
@@ -99,27 +100,48 @@ namespace VP.Selenium.Chrome.Services
 
         public void ClearExceptionProcess()
         {
-            var processList = Process.GetProcesses();
-            var chromeTestProcessList = _processService.GetFiltedByCommandLine(Process.GetProcesses(), "--test-type=webdriver");
-            var processIdAndParentProcessIdList = _processService.GetProcessIdAndParentProcessIdList(chromeTestProcessList).ToList();
+            var needKillProcessList = new List<Process>();
+            var currentProcessList = Process.GetProcesses();
+            var processIdTree = new List<Process>();
+            var a = currentProcessList.Where(row => row.ProcessName.Equals(_processName));
+            var processIdAndParentProcessIdList = _processService.GetProcessIdAndParentProcessIdList(a).ToList();
             foreach (var item in processIdAndParentProcessIdList)
             {
-                var parentProcess = processList.FirstOrDefault(p => p.Id.Equals(item.Value));
-                if (parentProcess is null||parentProcess.Id<=4 ||parentProcess.HasExited)
+                var processId = item.Key;
+                var parentProcessId = item.Value;
+            reScanProcess:
+                var process = currentProcessList.FirstOrDefault(row => row.Id.Equals(processId));
+                var parentProcess = currentProcessList.FirstOrDefault(row => row.Id.Equals(parentProcessId));
+                if (parentProcess is null||parentProcess.Id<=4||parentProcess.HasExited)
                 {
-                    var process = processList.FirstOrDefault(p => p.Id.Equals(item.Key));
-
-                    if (process!=null)
-                    {
-                        process.Refresh();
-                        if (!process.HasExited)
-                            process.Kill();
-                    }
+                    if (process!=null&&!process.HasExited)
+                        needKillProcessList.Add(process);
                 }
+                else if (parentProcess.ProcessName.Equals(_processName))
+                {
+                    if (process!=null&&!process.HasExited)
+                        processIdTree.Add(process);
+                    processId = parentProcess.Id;
+
+                    var parent = _processService.GetParentProcessId(parentProcess.Id);
+                    if (parent!=0)
+                    {
+                        parentProcessId = parent;
+                        processIdTree.Add(parentProcess);
+                        goto reScanProcess;
+                    }
+                    else
+                        needKillProcessList.Add(parentProcess);
+                }
+                else
+                    processIdTree.Clear();
             };
+            needKillProcessList.AddRange(processIdTree);
+            needKillProcessList.Distinct().ToList().ForEach(row => row.Kill());
             processIdAndParentProcessIdList=null;
-            chromeTestProcessList=null;
-            processList=null;
+            processIdTree=null;
+            needKillProcessList =null;
+            currentProcessList=null;
         }
 
         public void Dispose()
