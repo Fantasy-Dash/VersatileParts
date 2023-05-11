@@ -74,7 +74,7 @@ namespace VP.Selenium.Chromium.Extensions
             return opt;
         }
 
-        public static ChromeOptions SetSafeBrowsing(this ChromeOptions opt, bool isSafeBrowsing = true)
+        public static ChromeOptions SetSafeBrowsingArgument(this ChromeOptions opt, bool isSafeBrowsing = true)
         {
             if (isSafeBrowsing)
             {
@@ -89,7 +89,7 @@ namespace VP.Selenium.Chromium.Extensions
             return opt;
         }
 
-        public static ChromeOptions AddAutomationArgument(this ChromeOptions opt)
+        public static ChromeOptions AddDisableAutomationArgument(this ChromeOptions opt)
         {
             opt.AddExcludedArgument("enable-automation");//通知用户其浏览器正由自动化测试控制
             opt.AddArgument("--disable-blink-features=AutomationControlled");//移除模拟器特征
