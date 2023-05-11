@@ -14,7 +14,7 @@ namespace VP.Selenium.Contracts.Extensions
             wait.Until(d => d.FindElement(elementIdentifier));
 
         /// <inheritdoc cref="IWebElementExtensions.WaitElementList(IWebElement, By, WebDriverWait, int)"/>
-        public static ReadOnlyCollection<IWebElement> WaitElementList(this WebDriverWait wait, By elementIdentifier, int needCount = 1)
+        public static IEnumerable<IWebElement> WaitElementList(this WebDriverWait wait, By elementIdentifier, int needCount = 1)
         {
             return wait.Until(d =>
             {
@@ -27,18 +27,32 @@ namespace VP.Selenium.Contracts.Extensions
             });
         }
 
-        //todo 注释
-        public static IWebElement WaitClickableElement(this WebDriverWait wait, By by)
+        /// <inheritdoc cref="IWebElementExtensions.WaitElementList(IWebElement, By, WebDriverWait, int)"/>
+        public static IEnumerable<IWebElement> WaitDisplayedElementList(this WebDriverWait wait, By elementIdentifier, int needCount = 1)
         {
             return wait.Until(d =>
             {
-                var targetElement = wait.WaitElementList(by).Last();
-                while (!targetElement.Displayed)
+                //todo 等待个数待调试 调试完成后 重新编写方法注释
+                if (d.FindElements(elementIdentifier).Where(row=>row.Displayed).Count() >= needCount)
+                {
+                    return d.FindElements(elementIdentifier).Where(row => row.Displayed);
+                }
+                throw new NoSuchElementException();
+            });
+        }
+
+        //todo 注释
+        public static IWebElement WaitDisplayedElement(this WebDriverWait wait, By by)
+        {
+            return wait.Until(d =>
+            {
+                var targetElements = wait.WaitElementList(by);
+                while (!targetElements.Where(row => row.Displayed).Any())
                 {
                     Task.Delay(50).GetAwaiter().GetResult();
-                    targetElement=wait.WaitElementList(by).Last();
+                    targetElements=wait.WaitElementList(by);
                 }
-                return targetElement;
+                return targetElements.Where(row => row.Displayed).First();
             });
 
         }

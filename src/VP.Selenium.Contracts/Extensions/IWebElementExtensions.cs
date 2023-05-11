@@ -1,5 +1,6 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.DevTools;
 using OpenQA.Selenium.Support.Extensions;
 using OpenQA.Selenium.Support.UI;
 using System.Collections.ObjectModel;
@@ -30,11 +31,17 @@ namespace VP.Selenium.Contracts.Extensions
         }
 
         //todo注释
-        public static string GetAllText(this IWebElement element)
+        public static string GetText(this IWebElement element,IWebDriver webDriver)
         {
-            var sb = new StringBuilder();
-            element.FindElements(By.XPath("*")).ToList().ForEach(row =>sb.Append(row.Text));
-            return sb.ToString();
+            webDriver.ExecuteJavaScript("arguments[0].scrollIntoView({behavior: 'instant', block: 'end', inline: 'nearest'});", element);
+            if (string.IsNullOrWhiteSpace(element.Text))
+            {
+                var sb = new StringBuilder();
+                element.FindElements(By.XPath("./*")).ToList().ForEach(row => sb.Append(row.Text));
+                return sb.ToString();
+            }
+            else
+                return element.Text;
         }
 
         /// <summary>
@@ -42,7 +49,11 @@ namespace VP.Selenium.Contracts.Extensions
         /// </summary>
         /// <param name="element">页面元素</param>
         /// <param name="driver">web驱动</param>
-        public static void ClickSafely(this IWebElement element, IWebDriver driver) => driver.ExecuteJavaScript("arguments[0].click();", element);
+        public static void ClickSafely(this IWebElement element, IWebDriver driver)
+        {
+            driver.ExecuteJavaScript("arguments[0].scrollIntoView({behavior: 'instant', block: 'end', inline: 'nearest'});", element);
+            driver.ExecuteJavaScript("arguments[0].click();", element);
+        }
 
         /// <summary>
         /// 等待列表元素
