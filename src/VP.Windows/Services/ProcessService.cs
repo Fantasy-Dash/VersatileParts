@@ -43,7 +43,7 @@ namespace VP.Windows.Services
             if (processIdList.Any())
             {
                 var sb = new StringBuilder(" ProcessId ="+processIdList.First());
-                _ = processIdList.Skip(1).Select(row => sb.Append(" OR ProcessId ="+row));
+                processIdList.Skip(1).ToList().ForEach(row => sb.Append(" OR ProcessId ="+row));
                 using var searcher = new ManagementObjectSearcher($"SELECT ProcessId,ParentProcessId FROM Win32_Process WHERE {sb}");
                 foreach (ManagementObject obj in searcher.Get().Cast<ManagementObject>())
                     ret.Add(Convert.ToInt32(obj["ProcessId"]), Convert.ToInt32(obj["ParentProcessId"]));
