@@ -10,30 +10,29 @@
         /// </summary>
         /// <param name="delay"></param>
         /// <param name="rate">指定随机倍率 延时为10 倍率为0.5 结果会在5-15之间</param>
-        /// <param name="lastRunTime"></param>
-        public static void TimeDelay(ref DateTime lastRunTime, TimeSpan delay, double? rate = null, bool isUpdateLastRunTime = true, CancellationTokenSource? tokenSource = null)
+        /// <param name="baseTime">基准时间</param>
+        public static void TimeDelay(ref DateTime baseTime, TimeSpan delay, double? rate = null, bool isUpdateBaseTime = true, CancellationTokenSource? tokenSource = null)
         {
             var span = GetDelay(delay, rate);
-            span = lastRunTime + span - DateTime.Now;
+            span = baseTime + span - DateTime.Now;
             if (span.TotalMilliseconds > 0)
             {
+            if (isUpdateBaseTime) baseTime = DateTime.Now;
                 if (tokenSource is null)
-                    Task.Delay(Convert.ToInt32(span.TotalMilliseconds)).GetAwaiter().GetResult();
+                    Task.Delay(span).GetAwaiter().GetResult();
                 else
                     try
                     {
-                        Task.Delay(Convert.ToInt32(span.TotalMilliseconds), tokenSource.Token).GetAwaiter().GetResult();
+                        Task.Delay(span, tokenSource.Token).GetAwaiter().GetResult();
                     }
                     catch (AggregateException ex)
                     {
-                        if (ex.InnerException is not TaskCanceledException)
-                        {
-                            throw ex.InnerException ?? new Exception(ex.Message);
-                        }
+                        if (ex.GetBaseException() is not TaskCanceledException)
+                            throw ex.GetBaseException();
                     }
                     catch (TaskCanceledException) { }
             }
-            if (isUpdateLastRunTime) lastRunTime = DateTime.Now;
+            else if (isUpdateBaseTime) baseTime = DateTime.Now;
         }
 
         /// <summary>
@@ -44,19 +43,20 @@
         /// <param name="lastRunTime"></param>
         public static void TimeDelay(TimeSpan delay, double? rate = null, CancellationTokenSource? tokenSource = null)
         {
-            if (GetDelay(delay, rate).TotalMilliseconds > 0)
+            var span = GetDelay(delay, rate);
+            if (span.TotalMilliseconds > 0)
             {
                 if (tokenSource is null)
-                    Task.Delay(GetDelay(delay, rate)).GetAwaiter().GetResult();
+                    Task.Delay(span).GetAwaiter().GetResult();
                 else
                     try
                     {
-                        Task.Delay(GetDelay(delay, rate), tokenSource.Token).GetAwaiter().GetResult();
+                        Task.Delay(span, tokenSource.Token).GetAwaiter().GetResult();
                     }
                     catch (AggregateException ex)
                     {
-                        if (ex.InnerException is not TaskCanceledException)
-                            throw ex.InnerException ?? new Exception(ex.Message);
+                        if (ex.GetBaseException() is not TaskCanceledException)
+                            throw ex.GetBaseException();
                     }
             }
         }
