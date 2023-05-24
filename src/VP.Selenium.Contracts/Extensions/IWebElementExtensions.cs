@@ -19,29 +19,35 @@ namespace VP.Selenium.Contracts.Extensions
         /// <param name="element">以此元素开始查询子元素</param>
         /// <param name="wait">等待器</param>
         /// <param name="elementIdentifier">筛选器</param>
+        /// <param name="token">可供取消等待的Token</param>
         /// <returns>返回找到的单个 <see cref="IWebElement"/></returns>
-        public static IWebElement WaitElement(this IWebElement element, WebDriverWait wait, By elementIdentifier)
+        public static IWebElement WaitElement(this IWebElement element, WebDriverWait wait, By elementIdentifier, CancellationToken token = default)
         {
-            return wait.Until(d => element.FindElement(elementIdentifier));
+            return wait.Until(d => element.FindElement(elementIdentifier), token);
         }
-        /// <inheritdoc cref="WaitElement(IWebElement, WebDriverWait, By)"/>
-        public static IWebElement WaitElement(this IWebElement element, By elementIdentifier, WebDriverWait wait)
+        /// <inheritdoc cref="WaitElement(IWebElement, WebDriverWait, By, CancellationToken)"/>
+        public static IWebElement WaitElement(this IWebElement element, By elementIdentifier, WebDriverWait wait, CancellationToken token = default)
         {
-            return element.WaitElement(wait, elementIdentifier);
+            return element.WaitElement(wait, elementIdentifier, token);
         }
 
         //todo注释
-        public static string GetText(this IWebElement element,IWebDriver webDriver)
+        public static string GetText(this IWebElement element)
         {
-            webDriver.ExecuteJavaScript("arguments[0].scrollIntoView({behavior: 'instant', block: 'end', inline: 'nearest'});", element);
-            if (string.IsNullOrWhiteSpace(element.Text))
+            if (element is IWrapsDriver e)
             {
-                var sb = new StringBuilder();
-                element.FindElements(By.XPath("./*")).ToList().ForEach(row => sb.Append(row.Text));
-                return sb.ToString();
+                e.WrappedDriver.ExecuteJavaScript("arguments[0].scrollIntoView({behavior: 'instant', block: 'end', inline: 'nearest'});", element);
+                if (string.IsNullOrWhiteSpace(element.Text))
+                {
+                    var sb = new StringBuilder();
+                    element.FindElements(By.XPath("./*")).ToList().ForEach(row => sb.Append(row.Text));
+                    return sb.ToString();
+                }
+                else
+                    return element.Text;
             }
             else
-                return element.Text;
+                throw new NotImplementedException($"{nameof(element)}不支持获取WrappedDriver");
         }
 
         /// <summary>
@@ -49,10 +55,15 @@ namespace VP.Selenium.Contracts.Extensions
         /// </summary>
         /// <param name="element">页面元素</param>
         /// <param name="driver">web驱动</param>
-        public static void ClickSafely(this IWebElement element, IWebDriver driver)
+        public static void ClickSafely(this IWebElement element)
         {
-            driver.ExecuteJavaScript("arguments[0].scrollIntoView({behavior: 'instant', block: 'end', inline: 'nearest'});", element);
-            driver.ExecuteJavaScript("arguments[0].click();", element);
+            if (element is IWrapsDriver e)
+            {
+                e.WrappedDriver.ExecuteJavaScript("arguments[0].scrollIntoView({behavior: 'instant', block: 'end', inline: 'nearest'});", element);
+                e.WrappedDriver.ExecuteJavaScript("arguments[0].click();", element);
+            }
+            else
+                throw new NotImplementedException($"{nameof(element)}不支持获取WrappedDriver");
         }
 
         /// <summary>
@@ -62,8 +73,9 @@ namespace VP.Selenium.Contracts.Extensions
         /// <param name="wait">等待器</param>
         /// <param name="elementIdentifier">筛选器</param>
         /// <param name="needCount">需要的元素最小数量</param>
+        /// <param name="token">可供取消等待的Token</param>
         /// <returns></returns>
-        public static ReadOnlyCollection<IWebElement> WaitElementList(this IWebElement element, By elementIdentifier, WebDriverWait wait, int needCount = 0)
+        public static ReadOnlyCollection<IWebElement> WaitElementList(this IWebElement element, By elementIdentifier, WebDriverWait wait, int needCount = 0, CancellationToken token = default)
         {
             return wait.Until(d =>
             {
@@ -73,7 +85,7 @@ namespace VP.Selenium.Contracts.Extensions
                     return element.FindElements(elementIdentifier);
                 }
                 throw new NoSuchElementException();
-            });
+            }, token);
         }
     }
 }
