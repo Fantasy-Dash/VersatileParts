@@ -14,4 +14,8 @@
 		<PackageReference Include="NPOI" Version="2.6.0" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\VP.Common\VP.Common.csproj" />
+	</ItemGroup>
+
 </Project>
