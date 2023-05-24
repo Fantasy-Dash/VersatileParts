@@ -1,7 +1,9 @@
 ﻿using NPOI.SS.Formula.Functions;
 using NPOI.SS.UserModel;
+using NPOI.SS.Util;
 using System.Drawing;
 using System.Text.RegularExpressions;
+using VP.Common.Utils;
 using VP.Office.Helpers;
 
 namespace VP.Office.Extensions
@@ -13,8 +15,8 @@ namespace VP.Office.Extensions
 
         public static ICell? GetCellByExcelCellString(this ISheet sheet, string excleCellString)
         {
-            int num = Convert.ToInt32(Regex.Replace(excleCellString, "[a-z]", "", RegexOptions.IgnoreCase));
-            string str = Regex.Replace(excleCellString, "[0-9]", "", RegexOptions.IgnoreCase);
+            int num = Convert.ToInt32(RegexUtils.GetEnglishLettersRegex().Replace(excleCellString, ""));
+            string str = RegexUtils.GetNumbersRegex().Replace(excleCellString, "");
             return sheet.GetRow(num-1)?.GetCell(ExcelHelper.GetColumnIndexFromColumnLetters(str));
         }
 
@@ -30,8 +32,8 @@ namespace VP.Office.Extensions
         {
             var ret = new List<ICell?>();
             var row = sheet.GetRow(rowIndex);
-            for (int i = startIndex; i <= row.LastCellNum; i++)
-                ret.Add(row.GetCell(i));
+            for (int i = startIndex; i <= sheet.LastRowNum; i++)
+                ret.Add(row?.GetCell(i));
             return ret;
         }
     }
