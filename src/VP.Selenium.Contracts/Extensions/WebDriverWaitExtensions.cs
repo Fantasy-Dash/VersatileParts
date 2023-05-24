@@ -1,4 +1,5 @@
-﻿using OpenQA.Selenium;
+﻿using Newtonsoft.Json.Linq;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using System.Collections.ObjectModel;
 
@@ -9,12 +10,12 @@ namespace VP.Selenium.Contracts.Extensions
     /// </summary>
     public static class WebDriverWaitExtensions
     {
-        /// <inheritdoc cref="IWebElementExtensions.WaitElement(IWebElement, WebDriverWait, By)"/>
-        public static IWebElement WaitElement(this WebDriverWait wait, By elementIdentifier) =>
-            wait.Until(d => d.FindElement(elementIdentifier));
+        /// <inheritdoc cref="IWebElementExtensions.WaitElement(IWebElement, WebDriverWait, By, CancellationToken)"/>
+        public static IWebElement WaitElement(this WebDriverWait wait, By elementIdentifier,CancellationToken token = default) =>
+            wait.Until(d => d.FindElement(elementIdentifier),token);
 
-        /// <inheritdoc cref="IWebElementExtensions.WaitElementList(IWebElement, By, WebDriverWait, int)"/>
-        public static IEnumerable<IWebElement> WaitElementList(this WebDriverWait wait, By elementIdentifier, int needCount = 1)
+        /// <inheritdoc cref="IWebElementExtensions.WaitElementList(IWebElement, By, WebDriverWait, int, CancellationToken)"/>
+        public static IEnumerable<IWebElement> WaitElementList(this WebDriverWait wait, By elementIdentifier, int needCount = 1, CancellationToken token = default)
         {
             return wait.Until(d =>
             {
@@ -24,11 +25,11 @@ namespace VP.Selenium.Contracts.Extensions
                     return d.FindElements(elementIdentifier);
                 }
                 throw new NoSuchElementException();
-            });
+            },token);
         }
 
-        /// <inheritdoc cref="IWebElementExtensions.WaitElementList(IWebElement, By, WebDriverWait, int)"/>
-        public static IEnumerable<IWebElement> WaitDisplayedElementList(this WebDriverWait wait, By elementIdentifier, int needCount = 1)
+        /// <inheritdoc cref="IWebElementExtensions.WaitElementList(IWebElement, By, WebDriverWait, int, CancellationToken)"/>
+        public static IEnumerable<IWebElement> WaitDisplayedElementList(this WebDriverWait wait, By elementIdentifier, int needCount = 1, CancellationToken token = default)
         {
             return wait.Until(d =>
             {
@@ -38,11 +39,11 @@ namespace VP.Selenium.Contracts.Extensions
                     return d.FindElements(elementIdentifier).Where(row => row.Displayed);
                 }
                 throw new NoSuchElementException();
-            });
+            }, token);
         }
 
         //todo 注释
-        public static IWebElement WaitDisplayedElement(this WebDriverWait wait, By by)
+        public static IWebElement WaitDisplayedElement(this WebDriverWait wait, By by, CancellationToken token = default)
         {
             return wait.Until(d =>
             {
@@ -53,8 +54,7 @@ namespace VP.Selenium.Contracts.Extensions
                     targetElements=wait.WaitElementList(by);
                 }
                 return targetElements.Where(row => row.Displayed).First();
-            });
-
+            },token);
         }
     }
 }
