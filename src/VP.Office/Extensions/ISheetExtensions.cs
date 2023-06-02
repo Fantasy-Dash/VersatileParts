@@ -1,8 +1,5 @@
-﻿using NPOI.SS.Formula.Functions;
-using NPOI.SS.UserModel;
-using NPOI.SS.Util;
+﻿using NPOI.SS.UserModel;
 using System.Drawing;
-using System.Text.RegularExpressions;
 using VP.Common.Utils;
 using VP.Office.Helpers;
 
@@ -10,7 +7,7 @@ namespace VP.Office.Extensions
 {//todo 注释
     public static class ISheetExtensions
     {
-        public static ICell? GetCellByPoint(this ISheet sheet, int x,int y) => sheet.GetRow(y)?.GetCell(x);
+        public static ICell? GetCellByPoint(this ISheet sheet, int x, int y) => sheet.GetRow(y)?.GetCell(x);
         public static ICell? GetCellByPoint(this ISheet sheet, Point point) => sheet.GetRow(point.Y)?.GetCell(point.X);
 
         public static ICell? GetCellByExcelCellString(this ISheet sheet, string excleCellString)
@@ -32,9 +29,15 @@ namespace VP.Office.Extensions
         {
             var ret = new List<ICell?>();
             var row = sheet.GetRow(rowIndex);
-            for (int i = startIndex; i <= sheet.LastRowNum; i++)
-                ret.Add(row?.GetCell(i));
+            if (row!=null)
+                for (int i = startIndex; i <= row.LastCellNum; i++)
+                    ret.Add(row.GetCell(i));
             return ret;
+        }
+
+        public static IRow GetOrCreateRow(this ISheet sheet, int rowIndex)
+        {
+            return sheet.GetRow(rowIndex)??sheet.CreateRow(rowIndex);
         }
     }
 }
