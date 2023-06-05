@@ -17,8 +17,10 @@ namespace VP.Selenium.Chromium.Extensions
             return opt;
         }
 
-        public static ChromeOptions AddHeadlessArgument(this ChromeOptions opt)
+        public static ChromeOptions AddHeadlessArgument(this ChromeOptions opt,bool isSimulateNotHeadLessArgument = false)
         {
+            if (isSimulateNotHeadLessArgument)
+                opt.AddArgument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36");
             opt.AddArgument("--headless");//无界面
             return opt;
         }
