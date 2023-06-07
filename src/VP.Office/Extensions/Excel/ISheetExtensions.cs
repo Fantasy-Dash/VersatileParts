@@ -3,7 +3,7 @@ using System.Drawing;
 using VP.Common.Utils;
 using VP.Office.Helpers;
 
-namespace VP.Office.Extensions
+namespace VP.Office.Extensions.Excel
 {//todo 注释
     public static class ISheetExtensions
     {
@@ -14,7 +14,7 @@ namespace VP.Office.Extensions
         {
             int num = Convert.ToInt32(RegexUtils.GetEnglishLettersRegex().Replace(excleCellString, ""));
             string str = RegexUtils.GetNumbersRegex().Replace(excleCellString, "");
-            return sheet.GetRow(num-1)?.GetCell(ExcelHelper.GetColumnIndexFromColumnLetters(str));
+            return sheet.GetRow(num - 1)?.GetCell(ExcelHelper.GetColumnIndexFromColumnLetters(str));
         }
 
         public static IEnumerable<ICell?> GetColumnCells(this ISheet sheet, int columnIndex, int startIndex = 0)
@@ -29,7 +29,7 @@ namespace VP.Office.Extensions
         {
             var ret = new List<ICell?>();
             var row = sheet.GetRow(rowIndex);
-            if (row!=null)
+            if (row != null)
                 for (int i = startIndex; i <= row.LastCellNum; i++)
                     ret.Add(row.GetCell(i));
             return ret;
@@ -37,7 +37,7 @@ namespace VP.Office.Extensions
 
         public static IRow GetOrCreateRow(this ISheet sheet, int rowIndex)
         {
-            return sheet.GetRow(rowIndex)??sheet.CreateRow(rowIndex);
+            return sheet.GetRow(rowIndex) ?? sheet.CreateRow(rowIndex);
         }
     }
 }

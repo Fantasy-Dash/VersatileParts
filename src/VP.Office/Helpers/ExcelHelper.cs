@@ -2,9 +2,7 @@
 using NPOI.POIFS.FileSystem;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
-using NPOI.XSSF.Streaming;
 using NPOI.XSSF.UserModel;
-using System.Text;
 using VP.Common.Helpers;
 
 namespace VP.Office.Helpers
@@ -13,7 +11,7 @@ namespace VP.Office.Helpers
     {
         public static IEnumerable<ISheet> ReadFileToSheetList(string filePath)
         {
-            if(FileHelper.IsFileUsing(filePath))
+            if (FileHelper.IsFileUsing(filePath))
                 throw new FileLoadException("文件已被占用");
             var ret = new List<ISheet>();
             try
