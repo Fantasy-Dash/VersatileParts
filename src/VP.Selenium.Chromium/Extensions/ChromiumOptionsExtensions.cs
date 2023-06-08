@@ -1,4 +1,5 @@
-﻿using OpenQA.Selenium.Chrome;
+﻿using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 
 namespace VP.Selenium.Chromium.Extensions
 {
@@ -17,7 +18,7 @@ namespace VP.Selenium.Chromium.Extensions
             return opt;
         }
 
-        public static ChromeOptions AddHeadlessArgument(this ChromeOptions opt,bool isSimulateNotHeadLessArgument = false)
+        public static ChromeOptions AddHeadlessArgument(this ChromeOptions opt, bool isSimulateNotHeadLessArgument = false)
         {
             if (isSimulateNotHeadLessArgument)
                 opt.AddArgument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36");
@@ -55,6 +56,12 @@ namespace VP.Selenium.Chromium.Extensions
             return opt;
         }
 
+        public static ChromeOptions SetLogPerformance(this ChromeOptions opt, LogLevel logLevel)
+        {
+            opt.SetLoggingPreference(LogType.Performance, logLevel);
+            return opt;
+        }
+
         public static ChromeOptions SetDownloadFileNeverAskArgument(this ChromeOptions opt)
         {
             opt.AddUserProfilePreference("browser.helperApps.neverAsk.saveToDisk", "application/octet-stream");
@@ -72,7 +79,7 @@ namespace VP.Selenium.Chromium.Extensions
         public static ChromeOptions SetDownloadFilePromptArgument(this ChromeOptions opt, bool isNeedUserConfirm)
         {
             opt.AddUserProfilePreference("download.prompt_for_download", isNeedUserConfirm);
-            opt.AddUserProfilePreference("profile.default_content_settings.popups", isNeedUserConfirm?1:0);
+            opt.AddUserProfilePreference("profile.default_content_settings.popups", isNeedUserConfirm ? 1 : 0);
             return opt;
         }
 
