@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using OpenQA.Selenium.Chrome;
 using VP.Selenium.Chrome.Services;
 using VP.Selenium.Contracts.Services;
-using VP.Windows.Extensions;
 
 namespace VP.Selenium.Chrome.Extensions
 {
@@ -13,7 +12,6 @@ namespace VP.Selenium.Chrome.Extensions
         public static IServiceCollection AddVPChromeDriver(this IServiceCollection services)
         {
             services.TryAddSingleton<IWebDriverService<ChromeDriver, ChromeDriverService, ChromeOptions>, ChromeWebDriverService>();
-            services.AddVPWindowsService();
             return services;
         }
     }
