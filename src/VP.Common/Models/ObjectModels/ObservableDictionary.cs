@@ -74,12 +74,13 @@ namespace VP.Common.Models.ObjectModels
                 var list = this.ToList();
                 var index = list.FindIndex(row => row.Key.Equals(key));
                 var newItem = new KeyValuePair<TKey, TValue>(key, value);
-                base[key]=value;
+                var isUpdate = TryGetValue(key, out var v);
 
+                base[key]=value;
                 OnCountPropertyChanged();
                 OnIndexerPropertyChanged();
-                if (index > -1)
-                    OnDictionaryChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, newItem, list[index], index));
+                if (isUpdate)
+                    OnDictionaryChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, newItem, new KeyValuePair<TKey, TValue>(key, v!), index));
                 else
                     OnDictionaryChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, newItem, Count-1));
             }

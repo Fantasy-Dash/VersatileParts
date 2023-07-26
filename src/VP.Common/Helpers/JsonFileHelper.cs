@@ -76,7 +76,8 @@ namespace VP.Common.Helpers
         /// <summary>
         /// 合并json文件
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="filePath">源文件</param>
+        /// <param name="mergeFilePath">要进行合并的文件 会将不同合并到源文件中</param>
         /// <returns></returns>
         public static bool TryMergeFile(string filePath, string mergeFilePath)
         {
