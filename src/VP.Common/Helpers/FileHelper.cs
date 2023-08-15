@@ -51,7 +51,7 @@ namespace VP.Common.Helpers
         {
             if (!File.Exists(filePath))
                 return false;
-            
+
             try
             {
                 using var s = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
@@ -131,6 +131,44 @@ namespace VP.Common.Helpers
         }
 
         /// <summary>
+        /// 复制目录文件
+        /// </summary>
+        /// <param name="sourcePath">源目录</param>
+        /// <param name="targetPath">目标目录</param>
+        /// <param name="ignorePath">忽略的子目录</param>
+        /// <param name="ignoreFile">忽略的文件</param>
+        /// <inheritdoc cref="Directory.CreateDirectory(string)" path="/*[not(name()='returns')]" />
+        /// <inheritdoc cref="Path.GetRelativePath(string, string)" path="/*[not(name()='returns')]" />
+        /// <inheritdoc cref="ParallelEnumerable.ForAll{TSource}(ParallelQuery{TSource}, Action{TSource})" path="/*[not(name()='returns')]" />
+        public static void CopyDirectoryFile(string sourcePath, string targetPath, IEnumerable<string>? ignorePath, IEnumerable<string>? ignoreFile)
+        {
+            Directory.CreateDirectory(sourcePath);
+            Directory.CreateDirectory(targetPath);
+            var files = Directory.GetFiles(sourcePath, "*", SearchOption.AllDirectories);
+            files.AsParallel().WithDegreeOfParallelism(20).ForAll(file =>
+            {
+                var relativePath = Path.GetRelativePath(sourcePath, file);
+                var isSkip = false;
+                if (relativePath.IndexOf(@"\") > -1 && ignorePath != null)
+                    foreach (var item in ignorePath)
+                        if (relativePath.StartsWith(item))
+                            isSkip = true;
+                if (!isSkip && ignoreFile != null)
+                    foreach (var item in ignoreFile)
+                        if (relativePath.EndsWith(item))
+                            isSkip = true;
+                if (!isSkip)
+                {
+                    if (relativePath.IndexOf("\\")>-1)
+                        Directory.CreateDirectory(new FileInfo(Path.Combine(targetPath, relativePath)).DirectoryName!);
+                    using var sourceStream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    using var destStream = new FileStream(Path.Combine(targetPath, relativePath), FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
+                    sourceStream.CopyTo(destStream);
+                }
+            });
+        }
+
+        /// <summary>
         /// 替换目录文件
         /// </summary>
         /// <param name="sourcePath">源目录</param>
@@ -181,7 +219,7 @@ namespace VP.Common.Helpers
             Directory.CreateDirectory(path);
             needDeleteFilePath.AsParallel().WithDegreeOfParallelism(20).ForAll(deleteFilePath =>
             {
-                var filePath = Path.GetFullPath(deleteFilePath);
+                var filePath = Path.GetFullPath(Path.Combine(path, deleteFilePath));
                 var relativePath = Path.GetRelativePath(path, filePath);
                 var isSkip = false;
                 if (relativePath.IndexOf(@"\") > -1 && ignorePath != null)

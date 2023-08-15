@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace VP.Windows.Wpf.Helper
 {
@@ -30,29 +31,38 @@ namespace VP.Windows.Wpf.Helper
         private static partial uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
         delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
-        public static bool WindowActive(Process process)
+
+        [DllImport("User32.dll", CharSet = CharSet.Unicode)]
+        private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
+        public static bool WindowActive(Process process, string? windowTitle = null)
         {
-            var windowIdList = EnumWindow(process);
-            if (windowIdList.Count>0)
-            {
-                ShowWindowAsync(windowIdList.Last(), 8);//SW_SHOWNA
-                return SetForegroundWindow(windowIdList.Last());
-            }
-            return false;
+            var windowId = EnumWindow(process, windowTitle);
+            ShowWindowAsync(windowId, 5);
+            return SetForegroundWindow(windowId);
         }
 
-        public static List<IntPtr> EnumWindow(Process process)
+        public static IntPtr EnumWindow(Process process, string? windowTitle = null)
         {
-            List<IntPtr> hwnds = new();
+            windowTitle??= process.MainWindowTitle;
+            nint windowId = 0;
             uint processId = Convert.ToUInt32(process.Id);
             EnumWindows((IntPtr hWnd, IntPtr lParam) =>
             {
                 GetWindowThreadProcessId(hWnd, out uint pid);
                 if (pid == processId)
-                    hwnds.Add(hWnd);
+                {
+                    var title = new StringBuilder(256);
+                    _=  GetWindowText(hWnd, title, title.Capacity);
+                    if (title.ToString().Equals(windowTitle))
+                    {
+                        windowId=hWnd;
+                        return false;
+                    }
+                }
                 return true;
             }, IntPtr.Zero);
-            return hwnds;
+            return windowId;
         }
 
     }

@@ -1,5 +1,7 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
+using System.Text.Json;
+using VP.Selenium.Contracts.Models;
 
 namespace VP.Selenium.Contracts.Extensions
 {
@@ -53,6 +55,36 @@ namespace VP.Selenium.Contracts.Extensions
                 }
                 return targetElements.Where(row => row.Displayed).First();
             }, token);
+        }
+
+        public static void WaitPageLoaded(this WebDriverWait wait)
+        {
+            var performanceLogs = new List<LogEntry>();
+            wait.Until(driver =>
+            {
+                performanceLogs.AddRange(driver.Manage().Logs.GetLog(LogType.Performance));
+                var loadingFrameIdList = new List<string>();
+                foreach (var logEntry in performanceLogs)
+                {
+                    var log = JsonSerializer.Deserialize<LogEntityMessageModel>(logEntry.Message);
+                    if (log?.Message?.Method?.Contains("Page.frameStoppedLoading")==true)
+                    {
+                        loadingFrameIdList.RemoveAll(row => row.Equals(log?.Message?.Params?["frameId"]));
+                        continue;
+                    }
+                    if (log?.Message?.Method?.Contains("Page.frameStartedLoading")==true
+                        ||log?.Message?.Method?.Contains("Page.loadEventFired")==true)
+                    {
+                        var frameId = log?.Message?.Params?["frameId"];
+                        if (!string.IsNullOrWhiteSpace(frameId))
+                            loadingFrameIdList.Add(frameId);
+                        continue;
+                    }
+                }
+                if (loadingFrameIdList.Count>0)
+                    throw new Exception();
+                return "页面加载完成";
+            });
         }
     }
 }

@@ -17,7 +17,6 @@
             span = baseTime + span - DateTime.Now;
             if (span.TotalMilliseconds > 0)
             {
-            if (isUpdateBaseTime) baseTime = DateTime.Now;
                 if (tokenSource is null)
                     Task.Delay(span).GetAwaiter().GetResult();
                 else
@@ -32,7 +31,7 @@
                     }
                     catch (TaskCanceledException) { }
             }
-            else if (isUpdateBaseTime) baseTime = DateTime.Now;
+            if (isUpdateBaseTime) baseTime = DateTime.Now;
         }
 
         /// <summary>

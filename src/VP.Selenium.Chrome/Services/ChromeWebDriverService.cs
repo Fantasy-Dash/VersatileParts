@@ -1,7 +1,9 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Chromium;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using VP.Common.Helpers;
 using VP.Common.Services.Interface;
 using VP.Selenium.Contracts.Services;
 using WebDriverManager;
@@ -41,13 +43,12 @@ namespace VP.Selenium.Chrome.Services
 
         public Task<ChromeDriver> CreateAsync(string browserName, DriverOptions driverOptions, DriverService? driverService = null, bool isHideCommandWindow = true)
         {
-            //使用第三方包配置驱动
             return Task.Run(() =>
                {
                    lock (_lock)
                    {
-                       var service = ChromeDriverService.CreateDefaultService();
-                       service.HideCommandPromptWindow = isHideCommandWindow;
+                       var service = ChromeDriverService.CreateDefaultService((ChromeOptions)driverOptions);
+                       service.HideCommandPromptWindow=isHideCommandWindow;
                        if (driverOptions is not ChromeOptions)
                            throw new ArgumentException($"参数:{nameof(driverOptions)}的类型必须为:{nameof(ChromeOptions)}");
                        var driver = new ChromeDriver(service, (ChromeOptions)driverOptions);
@@ -165,9 +166,7 @@ namespace VP.Selenium.Chrome.Services
                 {
                     driver.Quit();
                     driver.Dispose();
-                    var serviceCount = _driverDic.Count(row => row.Value.Equals(_driverDic[driver]));
-                    if (serviceCount<=1)
-                        _driverDic[driver].Dispose();
+                    _driverDic[driver].Dispose();
                     _driverDic.Remove(driver);
                     Drivers.Remove(browserName);
                     ClearExceptionProcess();

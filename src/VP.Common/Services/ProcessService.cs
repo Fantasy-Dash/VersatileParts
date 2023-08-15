@@ -47,7 +47,7 @@ namespace VP.Common.Services
         {
             var ret = new List<KeyValuePair<int, int>>();
             foreach (var item in processIdList)
-                ret.Add(new KeyValuePair<int,int>(item, GetParentProcessId(item)));
+                ret.Add(new KeyValuePair<int, int>(item, GetParentProcessId(item)));
             return ret;
         }
 

@@ -1,27 +1,27 @@
 ﻿using NPOI.SS.UserModel;
+using NPOI.SS.Util;
 using System.Drawing;
 using VP.Common.Utils;
-using VP.Office.Helpers;
 
 namespace VP.Office.Extensions.Excel
 {//todo 注释
     public static class ISheetExtensions
     {
-        public static ICell? GetCellByPoint(this ISheet sheet, int x, int y) => sheet.GetRow(y)?.GetCell(x);
-        public static ICell? GetCellByPoint(this ISheet sheet, Point point) => sheet.GetRow(point.Y)?.GetCell(point.X);
+        public static ICell? GetCellByPoint(this ISheet sheet, int x, int y) => sheet.GetOrCreateRow(y)?.GetCell(x);
+        public static ICell? GetCellByPoint(this ISheet sheet, Point point) => sheet.GetOrCreateRow(point.Y)?.GetCell(point.X);
 
         public static ICell? GetCellByExcelCellString(this ISheet sheet, string excleCellString)
         {
             int num = Convert.ToInt32(RegexUtils.GetEnglishLettersRegex().Replace(excleCellString, ""));
             string str = RegexUtils.GetNumbersRegex().Replace(excleCellString, "");
-            return sheet.GetRow(num - 1)?.GetCell(ExcelHelper.GetColumnIndexFromColumnLetters(str));
+            return sheet.GetOrCreateRow(num - 1)?.GetCell(CellReference.ConvertColStringToIndex(str));
         }
 
         public static IEnumerable<ICell?> GetColumnCells(this ISheet sheet, int columnIndex, int startIndex = 0)
         {
             var ret = new List<ICell?>();
             for (int i = startIndex; i <= sheet.LastRowNum; i++)
-                ret.Add(sheet.GetRow(i)?.GetCell(columnIndex));
+                ret.Add(sheet.GetOrCreateRow(i)?.GetCell(columnIndex));
             return ret;
         }
 

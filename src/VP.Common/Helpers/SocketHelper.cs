@@ -7,7 +7,24 @@ namespace VP.Common.Helpers
     //todo 注释
     public static class SocketHelper
     {
+        public static int FindFreePort()
+        {
+            int result = 0;
+            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            try
+            {
+                var localEP = new IPEndPoint(IPAddress.Any, 0);
+                socket.Bind(localEP);
+                localEP = (IPEndPoint)socket.LocalEndPoint!;
+                result = localEP!.Port;
+            }
+            finally
+            {
+                socket.Close();
+            }
 
+            return result;
+        }
         public static Socket CreateServer(IPEndPoint iPEndPoint)
         {
             Socket socketServer = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
