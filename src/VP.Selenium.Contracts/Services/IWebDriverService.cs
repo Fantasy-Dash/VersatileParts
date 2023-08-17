@@ -5,7 +5,7 @@ namespace VP.Selenium.Contracts.Services
     /// <summary>
     /// 浏览器驱动服务
     /// </summary>
-    public interface IWebDriverService<TWebDriver, TWebDriverService, TDriverOptions> : IDisposable
+    public interface IWebDriverService<TWebDriver, TWebDriverService> : IDisposable
     {
         public Dictionary<string, TWebDriver> Drivers { get; }
 

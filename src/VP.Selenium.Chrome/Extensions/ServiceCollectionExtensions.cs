@@ -11,7 +11,7 @@ namespace VP.Selenium.Chrome.Extensions
     {
         public static IServiceCollection AddVPChromeDriver(this IServiceCollection services)
         {
-            services.TryAddSingleton<IWebDriverService<ChromeDriver, ChromeDriverService, ChromeOptions>, ChromeWebDriverService>();
+            services.TryAddSingleton<IWebDriverService<ChromeDriver, ChromeDriverService>, ChromeWebDriverService>();
             return services;
         }
     }

@@ -9,7 +9,6 @@ namespace VP.Common.Extensions
     //todo 注释
     public static class ServiceCollectionExtensions
     {
-        [UnsupportedOSPlatform("windows")]
         public static IServiceCollection AddVPOSPlatformService(this IServiceCollection services)
         {
             services.TryAddSingleton<ISystemService, SystemService>();

@@ -15,11 +15,11 @@ namespace VP.Selenium.Chrome.Services
     /// <summary>
     /// 浏览器驱动服务
     /// </summary>
-    public class ChromeWebDriverService : IWebDriverService<ChromeDriver, ChromeDriverService, ChromeOptions>, IDisposable
+    public class ChromeWebDriverService : IWebDriverService<ChromeDriver, ChromeDriverService>, IDisposable
     {
         public Dictionary<string, ChromeDriver> Drivers { get; } = new();
         private static readonly object _lock = new();
-        private readonly Dictionary<ChromeDriver, ChromeDriverService> _driverDic = new();
+        private readonly Dictionary<ChromeDriver, DriverService> _driverDic = new();
         private readonly IProcessService _processService;
         private readonly string _processName = "chrome";
 
@@ -47,11 +47,11 @@ namespace VP.Selenium.Chrome.Services
                {
                    lock (_lock)
                    {
-                       var service = ChromeDriverService.CreateDefaultService((ChromeOptions)driverOptions);
-                       service.HideCommandPromptWindow=isHideCommandWindow;
+                       driverService??= ChromeDriverService.CreateDefaultService();
+                       driverService.HideCommandPromptWindow=isHideCommandWindow;
                        if (driverOptions is not ChromeOptions)
                            throw new ArgumentException($"参数:{nameof(driverOptions)}的类型必须为:{nameof(ChromeOptions)}");
-                       var driver = new ChromeDriver(service, (ChromeOptions)driverOptions);
+                       var driver = new ChromeDriver((ChromeDriverService)driverService, (ChromeOptions)driverOptions);
                        var capabilitity = (Dictionary<string, object>)driverOptions.ToCapabilities().GetCapability("goog:chromeOptions");
                        _=capabilitity.TryGetValue("args", out var args);
                        _=capabilitity.TryGetValue("prefs", out var prefs);
@@ -61,13 +61,13 @@ namespace VP.Selenium.Chrome.Services
                        try
                        {
                            Drivers.Add(browserName, driver);
-                           _driverDic.Add(driver, service);
+                           _driverDic.Add(driver, driverService);
                            return driver;
                        }
                        catch
                        {
                            driver.Quit();
-                           service.Dispose();
+                           driverService.Dispose();
                            throw;
                        }
                    }
@@ -84,7 +84,7 @@ namespace VP.Selenium.Chrome.Services
         public ChromeDriverService? GetService(ChromeDriver driver)
         {
             if (_driverDic.TryGetValue(driver, out var driverService))
-                return driverService;
+                return driverService as ChromeDriverService;
             return null;
         }
 
