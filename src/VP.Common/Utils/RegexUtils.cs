@@ -5,13 +5,13 @@ namespace VP.Common.Utils
     public static partial class RegexUtils
     {
 
-        [GeneratedRegex("[0-9]", RegexOptions.Compiled)]
+        [GeneratedRegex("[0-9]", RegexOptions.IgnoreCase)]
         public static partial Regex GetNumbersRegex();
 
-        [GeneratedRegex("[a-z]", RegexOptions.Compiled)]
+        [GeneratedRegex("[a-z]", RegexOptions.IgnoreCase)]
         public static partial Regex GetEnglishLettersRegex();
 
-        [GeneratedRegex(@"(-?\d+)(\.\d+)",RegexOptions.Compiled)]
+        [GeneratedRegex(@"(-?\d+)(\.\d+)",RegexOptions.IgnoreCase)]
         public static partial Regex GetFirstDoubleRegex();
 
         [GeneratedRegex("(?:^|,)(\"(?:[^\"]+|\"\")*\"|[^,\"]*)", RegexOptions.Compiled)]
