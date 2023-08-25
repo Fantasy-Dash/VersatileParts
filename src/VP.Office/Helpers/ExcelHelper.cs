@@ -14,6 +14,8 @@ namespace VP.Office.Helpers
             var sheet = workbook.CreateSheet();
             var regex = RegexUtils.CsvSpliterRegex();
             using var fs = new FileStream(csvFilePath, FileMode.Open);
+            if (fs.Length==0)
+                return new XSSFWorkbook();
             var encoding = CharsetDetector.DetectFromStream(fs).Detected.Encoding;
             fs.Position=0;
             using (var sr = new StreamReader(fs, encoding))

@@ -10,11 +10,11 @@ namespace VP.Office.Extensions.Excel
         public static ICell? GetCellByPoint(this ISheet sheet, int x, int y) => sheet.GetOrCreateRow(y)?.GetCell(x);
         public static ICell? GetCellByPoint(this ISheet sheet, Point point) => sheet.GetOrCreateRow(point.Y)?.GetCell(point.X);
 
-        public static ICell? GetCellByExcelCellString(this ISheet sheet, string excleCellString)
+        public static ICell GetCellByExcelCellString(this ISheet sheet, string excleCellString)
         {
             int num = Convert.ToInt32(RegexUtils.GetEnglishLettersRegex().Replace(excleCellString, ""));
             string str = RegexUtils.GetNumbersRegex().Replace(excleCellString, "");
-            return sheet.GetOrCreateRow(num - 1)?.GetCell(CellReference.ConvertColStringToIndex(str));
+            return sheet.GetOrCreateRow(num - 1).GetOrCreateCell(CellReference.ConvertColStringToIndex(str));
         }
 
         public static IEnumerable<ICell?> GetColumnCells(this ISheet sheet, int columnIndex, int startIndex = 0)

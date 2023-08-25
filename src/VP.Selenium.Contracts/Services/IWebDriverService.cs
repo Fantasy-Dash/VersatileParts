@@ -9,7 +9,7 @@ namespace VP.Selenium.Contracts.Services
     {
         public Dictionary<string, TWebDriver> Drivers { get; }
 
-        public Task<TWebDriver> CreateAsync(string browserName, DriverOptions driverOptions, DriverService? driverService = null, bool isHideCommandWindow = true);
+        public Task<TWebDriver> CreateAsync(string browserName, DriverOptions driverOptions, DriverService? driverService = null, bool isHideCommandWindow = true, TimeSpan? commandTimeout = null);
 
         public TWebDriver? GetDriver(string browserName);
 

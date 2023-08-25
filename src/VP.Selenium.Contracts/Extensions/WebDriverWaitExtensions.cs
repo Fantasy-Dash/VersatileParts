@@ -66,7 +66,11 @@ namespace VP.Selenium.Contracts.Extensions
                 var loadingFrameIdList = new List<string>();
                 foreach (var logEntry in performanceLogs)
                 {
-                    var log = JsonSerializer.Deserialize<LogEntityMessageModel>(logEntry.Message);
+                    var log = JsonSerializer.Deserialize(logEntry.Message,
+                                                         typeof(LogEntityMessageModel),
+                                                         SourceGenerationContext.Default)
+                                                    as LogEntityMessageModel;
+                    if (log?.Message is null) continue;
                     if (log?.Message?.Method?.Contains("Page.frameStoppedLoading")==true)
                     {
                         loadingFrameIdList.RemoveAll(row => row.Equals(log?.Message?.Params?["frameId"]));

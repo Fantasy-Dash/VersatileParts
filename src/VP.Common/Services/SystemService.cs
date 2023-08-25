@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Management;
 using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
 using VP.Common.Services.Interface;
 
 namespace VP.Common.Services

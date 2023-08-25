@@ -1,9 +1,7 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.Chromium;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using VP.Common.Helpers;
 using VP.Common.Services.Interface;
 using VP.Selenium.Contracts.Services;
 using WebDriverManager;
@@ -41,7 +39,7 @@ namespace VP.Selenium.Chrome.Services
             }
         }
 
-        public Task<ChromeDriver> CreateAsync(string browserName, DriverOptions driverOptions, DriverService? driverService = null, bool isHideCommandWindow = true)
+        public Task<ChromeDriver> CreateAsync(string browserName, DriverOptions driverOptions, DriverService? driverService = null, bool isHideCommandWindow = true, TimeSpan? commandTimeout = null)
         {
             return Task.Run(() =>
                {
@@ -51,7 +49,8 @@ namespace VP.Selenium.Chrome.Services
                        driverService.HideCommandPromptWindow=isHideCommandWindow;
                        if (driverOptions is not ChromeOptions)
                            throw new ArgumentException($"参数:{nameof(driverOptions)}的类型必须为:{nameof(ChromeOptions)}");
-                       var driver = new ChromeDriver((ChromeDriverService)driverService, (ChromeOptions)driverOptions);
+                       commandTimeout??=TimeSpan.FromMinutes(1);
+                       var driver = new ChromeDriver((ChromeDriverService)driverService, (ChromeOptions)driverOptions, commandTimeout.Value);
                        var capabilitity = (Dictionary<string, object>)driverOptions.ToCapabilities().GetCapability("goog:chromeOptions");
                        _=capabilitity.TryGetValue("args", out var args);
                        _=capabilitity.TryGetValue("prefs", out var prefs);

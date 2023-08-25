@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using System.Runtime.Versioning;
 using VP.Common.Services;
 using VP.Common.Services.Interface;
 

@@ -11,7 +11,7 @@ namespace VP.Common.Utils
         [GeneratedRegex("[a-z]", RegexOptions.IgnoreCase)]
         public static partial Regex GetEnglishLettersRegex();
 
-        [GeneratedRegex(@"(-?\d+)(\.\d+)",RegexOptions.IgnoreCase)]
+        [GeneratedRegex(@"(-?\d+)(\.\d+)", RegexOptions.IgnoreCase)]
         public static partial Regex GetFirstDoubleRegex();
 
         [GeneratedRegex("(?:^|,)(\"(?:[^\"]+|\"\")*\"|[^,\"]*)", RegexOptions.Compiled)]
