@@ -197,8 +197,10 @@ namespace VP.Common.Helpers
                             isSkip = true;
                 if (!isSkip)
                 {
+                    if (relativePath.IndexOf("\\")>-1)
+                        Directory.CreateDirectory(new FileInfo(Path.Combine(targetPath, relativePath)).DirectoryName!);
                     WaitForFileReleaseAsync(Path.Combine(targetPath, Path.GetFileName(file))).ConfigureAwait(false).GetAwaiter().GetResult();
-                    File.Copy(file, Path.Combine(targetPath, Path.GetFileName(file)), true);
+                    File.Copy(file, Path.Combine(targetPath, relativePath), true);
                     File.Delete(file);
                 }
             });
