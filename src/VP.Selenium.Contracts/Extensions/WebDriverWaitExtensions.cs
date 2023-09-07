@@ -1,7 +1,12 @@
-﻿using OpenQA.Selenium;
+﻿using AngleSharp.Attributes;
+using AngleSharp.Common;
+using AngleSharp.Dom;
+using OpenQA.Selenium;
+using OpenQA.Selenium.DevTools.V85.Profiler;
+using OpenQA.Selenium.Support.Extensions;
 using OpenQA.Selenium.Support.UI;
-using System.Text.Json;
-using VP.Selenium.Contracts.Models;
+using System;
+using System.Reflection;
 
 namespace VP.Selenium.Contracts.Extensions
 {
@@ -57,37 +62,23 @@ namespace VP.Selenium.Contracts.Extensions
             }, token);
         }
 
-        public static void WaitPageLoaded(this WebDriverWait wait)
+        public static void StopPageLoading(this WebDriverWait wait)
         {
-            var performanceLogs = new List<LogEntry>();
+
             wait.Until(driver =>
             {
-                performanceLogs.AddRange(driver.Manage().Logs.GetLog(LogType.Performance));
-                var loadingFrameIdList = new List<string>();
-                foreach (var logEntry in performanceLogs)
-                {
-                    var log = JsonSerializer.Deserialize(logEntry.Message,
-                                                         typeof(LogEntityMessageModel),
-                                                         SourceGenerationContext.Default)
-                                                    as LogEntityMessageModel;
-                    if (log?.Message is null) continue;
-                    if (log?.Message?.Method?.Contains("Page.frameStoppedLoading")==true)
-                    {
-                        loadingFrameIdList.RemoveAll(row => row.Equals(log?.Message?.Params?["frameId"]));
-                        continue;
-                    }
-                    if (log?.Message?.Method?.Contains("Page.frameStartedLoading")==true
-                        ||log?.Message?.Method?.Contains("Page.loadEventFired")==true)
-                    {
-                        var frameId = log?.Message?.Params?["frameId"];
-                        if (!string.IsNullOrWhiteSpace(frameId))
-                            loadingFrameIdList.Add(frameId);
-                        continue;
-                    }
-                }
-                if (loadingFrameIdList.Count>0)
-                    throw new Exception();
-                return "页面加载完成";
+                driver.StopPageLoading();
+                return true;
+            });
+        }
+
+        public static async Task WaitPageLoaded(this WebDriverWait wait)
+        {
+            await wait.Until(async driver =>
+            {
+                while (!driver.GetPageReady())
+                    await Task.Delay(250);
+                return true;
             });
         }
     }
