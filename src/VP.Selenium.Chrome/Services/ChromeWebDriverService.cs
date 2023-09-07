@@ -1,5 +1,6 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using Serilog;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using VP.Common.Services.Interface;
@@ -23,7 +24,7 @@ namespace VP.Selenium.Chrome.Services
 
         public ChromeWebDriverService(IProcessService processService)
         {
-            _processService=processService;
+            _processService =processService;
             for (int i = 0; i < 10; i++)
             {
                 try
@@ -32,10 +33,14 @@ namespace VP.Selenium.Chrome.Services
                                                            AppDomain.CurrentDomain.BaseDirectory))
                   .SetUpDriver(new ChromeConfig(),
                                VersionResolveStrategy.MatchingBrowser);
+                    Log.Information($"驱动设置成功");
                     break;
                 }
-                catch { }
-                Task.Delay(500).GetAwaiter().GetResult();
+                catch
+                {
+                    Log.Warning($"驱动设置异常 尝试次数:{i+1}");
+                    continue;
+                }
             }
         }
 
