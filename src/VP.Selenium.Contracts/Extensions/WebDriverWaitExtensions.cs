@@ -71,15 +71,5 @@ namespace VP.Selenium.Contracts.Extensions
                 return true;
             });
         }
-
-        public static async Task WaitPageLoaded(this WebDriverWait wait)
-        {
-            await wait.Until(async driver =>
-            {
-                while (!driver.GetPageReady())
-                    await Task.Delay(250);
-                return true;
-            });
-        }
     }
 }

@@ -50,7 +50,7 @@ namespace VP.Selenium.Chrome.Services
                {
                    lock (_lock)
                    {
-                       driverService??= ChromeDriverService.CreateDefaultService();
+                       driverService??=ChromeDriverService.CreateDefaultService();
                        driverService.HideCommandPromptWindow=isHideCommandWindow;
                        if (driverOptions is not ChromeOptions)
                            throw new ArgumentException($"参数:{nameof(driverOptions)}的类型必须为:{nameof(ChromeOptions)}");

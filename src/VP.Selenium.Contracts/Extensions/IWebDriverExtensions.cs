@@ -36,37 +36,5 @@ namespace VP.Selenium.Contracts.Extensions
         {
             webDriver.ExecuteJavaScript("window.stop();");
         }
-
-        public static bool GetPageReady(this IWebDriver webDriver)
-        {
-            var performanceLogs = new List<LogEntry>();
-            performanceLogs.AddRange(webDriver.Manage().Logs.GetLog(LogType.Performance));
-            var loadingFrameIdList = new List<string>();
-            foreach (var logEntry in performanceLogs)
-            {
-                var log = JsonSerializer.Deserialize(logEntry.Message,
-                                                     typeof(LogEntityMessageModel),
-                                                     SourceGenerationContext.Default)
-                                                as LogEntityMessageModel;
-                if (log?.Message is null) continue;
-                if (log?.Message?.Method?.Contains("Page.frameStoppedLoading")==true)
-                {
-                    loadingFrameIdList.RemoveAll(row => row.Equals(log?.Message?.Params?["frameId"]));
-                    continue;
-                }
-                if (log?.Message?.Method?.Contains("Page.frameStartedLoading")==true
-                    ||log?.Message?.Method?.Contains("Page.loadEventFired")==true)
-                {
-                    var frameId = log?.Message?.Params?["frameId"];
-                    if (!string.IsNullOrWhiteSpace(frameId))
-                        loadingFrameIdList.Add(frameId);
-                    continue;
-                }
-            }
-            if (loadingFrameIdList.Count>0)
-                return false;
-            return true;
-        }
-
     }
 }
