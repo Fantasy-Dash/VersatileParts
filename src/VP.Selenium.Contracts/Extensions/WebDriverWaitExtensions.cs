@@ -1,12 +1,5 @@
-﻿using AngleSharp.Attributes;
-using AngleSharp.Common;
-using AngleSharp.Dom;
-using OpenQA.Selenium;
-using OpenQA.Selenium.DevTools.V85.Profiler;
-using OpenQA.Selenium.Support.Extensions;
+﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
-using System;
-using System.Reflection;
 
 namespace VP.Selenium.Contracts.Extensions
 {

@@ -1,10 +1,7 @@
-﻿using AngleSharp.Dom;
-using OpenQA.Selenium;
+﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Support.Extensions;
 using OpenQA.Selenium.Support.UI;
 using System.Collections.ObjectModel;
-using System.Text.Json;
-using VP.Selenium.Contracts.Models;
 
 namespace VP.Selenium.Contracts.Extensions
 {

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net7.0</TargetFramework>
@@ -11,11 +11,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Selenium.Support" Version="4.12.4" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\VP.Common\VP.Common.csproj" />
+		<ProjectReference Include="..\VP.Selenium.Chromium\VP.Selenium.Chromium.csproj" />
 	</ItemGroup>
 
 </Project>

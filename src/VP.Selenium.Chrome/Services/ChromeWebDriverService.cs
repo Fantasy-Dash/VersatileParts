@@ -5,9 +5,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using VP.Common.Services.Interface;
 using VP.Selenium.Contracts.Services;
-using WebDriverManager;
-using WebDriverManager.DriverConfigs.Impl;
-using WebDriverManager.Helpers;
 
 namespace VP.Selenium.Chrome.Services
 {
@@ -25,23 +22,6 @@ namespace VP.Selenium.Chrome.Services
         public ChromeWebDriverService(IProcessService processService)
         {
             _processService =processService;
-            for (int i = 0; i < 10; i++)
-            {
-                try
-                {
-                    _ = new DriverManager(Path.GetFullPath("WebDriver",
-                                                           AppDomain.CurrentDomain.BaseDirectory))
-                  .SetUpDriver(new ChromeConfig(),
-                               VersionResolveStrategy.MatchingBrowser);
-                    Log.Information($"驱动设置成功");
-                    break;
-                }
-                catch
-                {
-                    Log.Warning($"驱动设置异常 尝试次数:{i+1}");
-                    continue;
-                }
-            }
         }
 
         public Task<ChromeDriver> CreateAsync(string browserName, DriverOptions driverOptions, DriverService? driverService = null, bool isHideCommandWindow = true, TimeSpan? commandTimeout = null)
