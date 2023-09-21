@@ -2,6 +2,7 @@
 using OpenQA.Selenium.Edge;
 using Serilog;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using VP.Common.Services.Interface;
 using VP.Selenium.Contracts.Services;
 
@@ -16,6 +17,8 @@ namespace VP.Selenium.Edge.Services
         private static readonly object _lock = new();
         private readonly Dictionary<EdgeDriver, DriverService> _driverDic = new();
         private readonly IProcessService _processService;
+        private readonly string _processName = "msedge";
+        private readonly string _driverName = "msedgedriver";
 
         public EdgeWebDriverService(IProcessService processService)
         {
@@ -73,9 +76,71 @@ namespace VP.Selenium.Edge.Services
             }
         }
 
-        public void ClearExceptionProcess()
+        public void ClearExceptionProcess(bool isDisposing = false)
         {
-
+            var needKillProcessIList = new List<Process>();
+            var currentProcessList = Process.GetProcesses();
+            var processIdTree = new List<Process>();
+            var browserProcessList = currentProcessList.Where(row => row.ProcessName.Equals(_processName)||row.ProcessName.Equals(_driverName));
+            foreach (var process in browserProcessList)
+            {
+                var cProcess = process;
+            reScanProcess:
+                var parentProcessId = _processService.GetParentProcessId(cProcess!.Id);
+                var parentProcessName = currentProcessList.FirstOrDefault(r => r.Id.Equals(parentProcessId))?.ProcessName??string.Empty;
+                if (parentProcessId<=4)
+                {
+                    processIdTree.Clear();
+                    continue;
+                }
+                else if (parentProcessName.Equals(_processName))
+                {
+                    if (process!=null&&!process.HasExited)
+                        processIdTree.Add(process);
+                    var parentProcess = currentProcessList.FirstOrDefault(r => r.Id.Equals(parentProcessId));
+                    if (parentProcess is null)
+                    {
+                        needKillProcessIList.AddRange(processIdTree);
+                        processIdTree.Clear();
+                        continue;
+                    }
+                    else
+                    {
+                        processIdTree.Add(parentProcess);
+                        cProcess = parentProcess;
+                        goto reScanProcess;
+                    }
+                }
+                else if (parentProcessName.Equals(_driverName))
+                {
+                    if (process!=null&&!process.HasExited)
+                        processIdTree.Add(process);
+                    var pProcessId = _processService.GetParentProcessId(parentProcessId);
+                    var parentProcess = currentProcessList.FirstOrDefault(r => r.Id.Equals(pProcessId));
+                    if (parentProcess is null||isDisposing)
+                    {
+                        needKillProcessIList.AddRange(processIdTree);
+                        processIdTree.Clear();
+                        continue;
+                    }
+                }
+                else if (string.IsNullOrWhiteSpace(parentProcessName))
+                {
+                    var parentProcess = currentProcessList.FirstOrDefault(r => r.Id.Equals(parentProcessId));
+                    if ((parentProcess is null ||parentProcess.HasExited)&&process!=null&&!process.HasExited)
+                    {
+                        processIdTree.Add(process);
+                        needKillProcessIList.AddRange(processIdTree);
+                    }
+                    processIdTree.Clear();
+                }
+                else
+                    processIdTree.Clear();
+            };
+            needKillProcessIList.DistinctBy(r => r.Id).ToList().ForEach(row => row.Kill());
+            processIdTree=null;
+            needKillProcessIList =null;
+            currentProcessList=null;
         }
 
         public void Dispose()
@@ -86,6 +151,7 @@ namespace VP.Selenium.Edge.Services
                 _driverDic.Values.Distinct().AsParallel().ForAll(item => item.Dispose());
                 _driverDic.Clear();
                 Drivers.Clear();
+                ClearExceptionProcess(true);
                 GC.SuppressFinalize(this);
             }
         }
@@ -101,6 +167,7 @@ namespace VP.Selenium.Edge.Services
                     _driverDic[driver].Dispose();
                     _driverDic.Remove(driver);
                     Drivers.Remove(browserName);
+                    ClearExceptionProcess();
                 }
             }
         }
