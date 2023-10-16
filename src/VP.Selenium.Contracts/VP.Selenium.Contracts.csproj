@@ -11,7 +11,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Selenium.Support" Version="4.12.4" />
+		<PackageReference Include="Selenium.Support" Version="4.13.1" />
 	</ItemGroup>
 
 	<ItemGroup>

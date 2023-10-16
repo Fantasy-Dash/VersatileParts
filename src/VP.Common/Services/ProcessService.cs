@@ -61,13 +61,12 @@ namespace VP.Common.Services
             }
             else
             {
-                try
-                {
-                    using var reader = new StreamReader($"/proc/{processId}/stat");
-                    string[] fields = reader.ReadToEnd().Split(' ');
-                    parentId = Convert.ToInt32(fields[3]);
-                }
-                catch { }
+                using var reader = new StreamReader($"/proc/{processId}/stat");
+                var result = reader.ReadToEnd();
+                if (result.IndexOf("No such file or directory")>-1)
+                    throw new ArgumentNullException();
+                string[] fields = result.Split(' ');
+                parentId = Convert.ToInt32(fields[3]);
             }
             return parentId;
         }

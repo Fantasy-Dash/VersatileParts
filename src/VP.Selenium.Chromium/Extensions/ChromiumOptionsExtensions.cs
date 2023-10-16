@@ -11,7 +11,6 @@ namespace VP.Selenium.Chromium.Extensions
         {
             opt.AddArgument("--disable-popup-blocking");//禁用弹出拦截
             opt.AddArgument("--no-sandbox");//沙盒模式运行
-            opt.AddArgument("disable-extensions");//禁用扩展程序
             opt.AddArgument("no-default-browser-check");//不检查默认浏览器
             return opt;
         }
@@ -19,7 +18,7 @@ namespace VP.Selenium.Chromium.Extensions
         public static ChromiumOptions AddHeadlessArgument(this ChromiumOptions opt, bool isSimulateNotHeadLessArgument = false)
         {
             if (isSimulateNotHeadLessArgument)
-                opt.AddArgument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36");
+                opt.AddArgument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36");
             opt.AddArgument("--headless");//无界面
             return opt;
         }
@@ -33,6 +32,12 @@ namespace VP.Selenium.Chromium.Extensions
         public static ChromiumOptions AddHardDriveCacheArgument(this ChromiumOptions opt)
         {
             opt.AddArgument("--disable-dev-shm-usage");
+            return opt;
+        }
+
+        public static ChromiumOptions AddFullscreenArgument(this ChromiumOptions opt)
+        {
+            opt.AddArgument("--start-fullscreen");
             return opt;
         }
 
