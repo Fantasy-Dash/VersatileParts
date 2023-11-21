@@ -5,12 +5,12 @@ namespace VP.Office.Extensions.Excel
     //todo 注释
     public static class ExcelICellExtensions
     {
-        public static string? GetStringValue(this ICell? cell)
+        public static string GetStringValue(this ICell? cell)
         {
-            if (cell is null) return null;
+            if (cell is null) return string.Empty;
             if (cell.CellType.Equals(CellType.Formula))
             {
-                string? ret = null;
+                string ret;
                 try
                 {
                     ret=cell.StringCellValue;
@@ -32,13 +32,13 @@ namespace VP.Office.Extensions.Excel
                 {
                     ret= cell.CachedFormulaResultType switch
                     {
-                        CellType.Unknown => cell.ToString(),
+                        CellType.Unknown => cell.ToString()??string.Empty,
                         CellType.Numeric => cell.NumericCellValue.ToString(),
                         CellType.String => cell.StringCellValue,
                         CellType.Blank => string.Empty,
                         CellType.Boolean => cell.BooleanCellValue.ToString(),
                         CellType.Error => throw new Exception(cell.ErrorCellValue.ToString()),
-                        _ => null,
+                        _ => string.Empty,
                     };
                     return ret;
                 }
@@ -46,13 +46,13 @@ namespace VP.Office.Extensions.Excel
             }
             return cell.CellType switch
             {
-                CellType.Unknown => cell.ToString(),
+                CellType.Unknown => cell.ToString()??string.Empty,
                 CellType.Numeric => cell.NumericCellValue.ToString(),
                 CellType.String => cell.StringCellValue,
                 CellType.Blank => string.Empty,
                 CellType.Boolean => cell.BooleanCellValue.ToString(),
                 CellType.Error => throw new Exception(cell.ErrorCellValue.ToString()),
-                _ => null,
+                _ => string.Empty,
             };
         }
     }

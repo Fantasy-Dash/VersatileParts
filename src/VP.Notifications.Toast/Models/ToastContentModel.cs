@@ -3,18 +3,13 @@ using Windows.UI.Notifications;
 
 namespace VP.Notifications.Toast.Models
 {
-    public class ToastContentModel
+    public class ToastContentModel(string id, string title)
     {
-        public ToastContentModel(string id, string title)
-        {
-            Id = id;
-            Title = title;
-        }
 
         /// <summary>
         /// 通知主键
         /// </summary>
-        public string Id { get; set; }
+        public string Id { get; set; } = id;
 
         /// <summary>
         /// 通知分组
@@ -44,7 +39,7 @@ namespace VP.Notifications.Toast.Models
         /// <summary>
         /// 通知标题(加粗显示的文本)
         /// </summary>
-        public string Title { get; set; }
+        public string Title { get; set; } = title;
 
         /// <summary>
         /// 通知内容

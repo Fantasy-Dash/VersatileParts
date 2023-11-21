@@ -10,19 +10,13 @@ namespace VP.Selenium.Chrome.Services
     /// <summary>
     /// 浏览器驱动服务
     /// </summary>
-    public class ChromeWebDriverService : IWebDriverService<ChromeDriver, ChromeDriverService>, IDisposable
+    public class ChromeWebDriverService(IProcessService _processService) : IWebDriverService<ChromeDriver, ChromeDriverService>, IDisposable
     {
-        public Dictionary<string, ChromeDriver> Drivers { get; } = new();
+        public Dictionary<string, ChromeDriver> Drivers { get; } = [];
         private static readonly object _lock = new();
-        private readonly Dictionary<ChromeDriver, DriverService> _driverDic = new();
-        private readonly IProcessService _processService;
+        private readonly Dictionary<ChromeDriver, DriverService> _driverDic = [];
         private readonly string _processName = "chrome";
         private readonly string _driverName = "chromedriver";
-
-        public ChromeWebDriverService(IProcessService processService)
-        {
-            _processService =processService;
-        }
 
         public Task<ChromeDriver> CreateAsync(string browserName, DriverOptions driverOptions, DriverService? driverService = null, bool isHideCommandWindow = true, TimeSpan? commandTimeout = null)
         {

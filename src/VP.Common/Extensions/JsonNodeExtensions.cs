@@ -213,7 +213,8 @@ namespace VP.Common.Extensions
             var cNode = node;
             foreach (var item in array)
                 cNode = cNode?.GetChild(item);
-            cNode = cNode.Parent;
+            if (cNode!=null)
+                cNode = cNode.Parent;
             for (int i = array.Count - 1; i >= 0; i--)
             {
                 if (cNode is null) break;

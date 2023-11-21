@@ -18,8 +18,7 @@ namespace VP.Common.Extensions
         /// <inheritdoc cref="Encoding.GetBytes(string)"/>
         public static byte[] GetBytes(this string? value)
         {
-            if (string.IsNullOrEmpty(value)) return Array.Empty<byte>();
-            return Encoding.UTF8.GetBytes(value);
+            return string.IsNullOrEmpty(value) ? [] : Encoding.UTF8.GetBytes(value);
         }
     }
 }

@@ -7,6 +7,8 @@ namespace VP.Common.Services
 {
     public class SystemService : ISystemService
     {
+        private static readonly string[] separator = ["OS Install"];
+
         public virtual DateTime GetSystemInstallTime()
         {
             DateTime installTime = DateTime.MinValue;
@@ -54,7 +56,7 @@ namespace VP.Common.Services
                     {
                         if (line.Contains("OS Install")) // macOS安装日志中包含"OS Install"关键字
                         {
-                            var parts = line.Split(new[] { "OS Install" }, StringSplitOptions.RemoveEmptyEntries);
+                            var parts = line.Split(separator, StringSplitOptions.RemoveEmptyEntries);
                             if (DateTime.TryParse(parts[0], out installTime))
                             {
                                 break;

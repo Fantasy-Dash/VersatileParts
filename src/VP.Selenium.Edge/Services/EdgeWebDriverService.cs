@@ -11,19 +11,13 @@ namespace VP.Selenium.Edge.Services
     /// <summary>
     /// 浏览器驱动服务
     /// </summary>
-    public class EdgeWebDriverService : IWebDriverService<EdgeDriver, EdgeDriverService>, IDisposable
+    public class EdgeWebDriverService(IProcessService _processService) : IWebDriverService<EdgeDriver, EdgeDriverService>, IDisposable
     {
-        public Dictionary<string, EdgeDriver> Drivers { get; } = new();
+        public Dictionary<string, EdgeDriver> Drivers { get; } = [];
         private static readonly object _lock = new();
-        private readonly Dictionary<EdgeDriver, DriverService> _driverDic = new();
-        private readonly IProcessService _processService;
+        private readonly Dictionary<EdgeDriver, DriverService> _driverDic = [];
         private readonly string _processName = "msedge";
         private readonly string _driverName = "msedgedriver";
-
-        public EdgeWebDriverService(IProcessService processService)
-        {
-            _processService =processService;
-        }
 
         public Task<EdgeDriver> CreateAsync(string browserName, DriverOptions driverOptions, DriverService? driverService = null, bool isHideCommandWindow = true, TimeSpan? commandTimeout = null)
         {

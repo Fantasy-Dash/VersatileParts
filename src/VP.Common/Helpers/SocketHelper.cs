@@ -64,7 +64,7 @@ namespace VP.Common.Helpers
                     throw new TimeoutException();
             }
             byte[] buffer = new byte[4096];
-            byte[] receivedData = Array.Empty<byte>();
+            byte[] receivedData = [];
             int count;
             do
             {

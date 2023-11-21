@@ -4,14 +4,8 @@ using VP.Quartz.Services.Interface;
 
 namespace VP.Quartz.Services
 {
-    public class QuartzService : IQuartzService, IDisposable
+    public class QuartzService(ISchedulerFactory _schedulerFactory) : IQuartzService, IDisposable
     {
-        private readonly ISchedulerFactory _schedulerFactory;
-        public QuartzService(ISchedulerFactory schedulerFactory)
-        {
-            _schedulerFactory=schedulerFactory;
-        }
-
         public async Task<IScheduler> CreateSchedulerAsync()
         {
             return await _schedulerFactory.GetScheduler();

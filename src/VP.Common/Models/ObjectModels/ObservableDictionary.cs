@@ -12,9 +12,14 @@ namespace VP.Common.Models.ObjectModels
     /// 实现INotifyCollectionChanged
     /// 当添加、删除元素或者刷新整个列表时通知监听器
     /// </summary>
+    /// <remarks>
+    /// 初始化一个新的ObservableDictionary实例
+    /// </remarks>
+    /// <param name="capacity">内容大小</param>
+    /// <param name="comparer">相等比较器</param>
     [Serializable]
     [DebuggerDisplay("Count = {Count}")]
-    public class ObservableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, IDictionary, ICollection<KeyValuePair<TKey, TValue>>, INotifyCollectionChanged, INotifyPropertyChanged where TKey : notnull
+    public class ObservableDictionary<TKey, TValue>(int capacity, IEqualityComparer<TKey>? comparer) : Dictionary<TKey, TValue>(capacity, comparer), IDictionary, ICollection<KeyValuePair<TKey, TValue>>, INotifyCollectionChanged, INotifyPropertyChanged where TKey : notnull
     {
         private SimpleMonitor? _monitor; // 仅当子类调用BlockReentrancy() 或 在序列化期间 延迟分配。不要重命名(二进制序列化)
 
@@ -29,13 +34,6 @@ namespace VP.Common.Models.ObjectModels
 
         /// <inheritdoc cref="ObservableDictionary(int,IEqualityComparer{TKey})"/>
         public ObservableDictionary(IEqualityComparer<TKey>? comparer) : this(0, comparer) { }
-
-        /// <summary>
-        /// 初始化一个新的ObservableDictionary实例
-        /// </summary>
-        /// <param name="capacity">内容大小</param>
-        /// <param name="comparer">相等比较器</param>
-        public ObservableDictionary(int capacity, IEqualityComparer<TKey>? comparer) : base(capacity, comparer) { }
 
         /// <inheritdoc cref="ObservableDictionary(int,IEqualityComparer{TKey})"/>
         /// <param name="dictionary">要复制到新字典中的源字典</param>

@@ -16,16 +16,16 @@ namespace VP.Common.Helpers
         /// <inheritdoc cref="StreamReader(Stream)"/>
         /// <inheritdoc cref="StreamReader.ReadToEnd()"/>
         /// <inheritdoc cref="JsonNode.Parse(Stream, JsonNodeOptions?, System.Text.Json.JsonDocumentOptions)"/>
-        public static T? ReadToType<T>(FileStream fileStream)
+        public static T? ReadToType<T>(Stream stream)
         {
-            fileStream.Position=0;
-            using var streamReader = new StreamReader(fileStream);
+            stream.Position=0;
+            using var streamReader = new StreamReader(stream);
             var a = typeof(T);
             var b = typeof(string);
             if (typeof(T) == typeof(string))
                 return (T?)(object?)streamReader.ReadToEnd();
             if (typeof(T) == typeof(JsonNode))
-                return (T?)(object?)JsonNode.Parse(fileStream);
+                return (T?)(object?)JsonNode.Parse(stream);
             object data = streamReader.ReadToEnd();
             return (T)data;
         }
@@ -56,7 +56,7 @@ namespace VP.Common.Helpers
             {
                 using var s = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
             }
-            catch (IOException)
+            catch
             {
                 return true;
             }
@@ -116,7 +116,7 @@ namespace VP.Common.Helpers
             {
                 var relativePath = Path.GetRelativePath(path, file);
                 var isSkip = false;
-                if (relativePath.IndexOf(@"\") > -1 && ignorePath != null)
+                if (relativePath.IndexOf('\\') > -1 && ignorePath != null)
                     foreach (var item in ignorePath)
                         if (relativePath.StartsWith(item))
                             isSkip = true;
@@ -149,7 +149,7 @@ namespace VP.Common.Helpers
             {
                 var relativePath = Path.GetRelativePath(sourcePath, file);
                 var isSkip = false;
-                if (relativePath.IndexOf(@"\") > -1 && ignorePath != null)
+                if (relativePath.IndexOf('\\') > -1 && ignorePath != null)
                     foreach (var item in ignorePath)
                         if (relativePath.StartsWith(item))
                             isSkip = true;
@@ -159,7 +159,7 @@ namespace VP.Common.Helpers
                             isSkip = true;
                 if (!isSkip)
                 {
-                    if (relativePath.IndexOf("\\")>-1)
+                    if (relativePath.IndexOf('\\')>-1)
                         Directory.CreateDirectory(new FileInfo(Path.Combine(targetPath, relativePath)).DirectoryName!);
                     using var sourceStream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                     using var destStream = new FileStream(Path.Combine(targetPath, relativePath), FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
@@ -187,7 +187,7 @@ namespace VP.Common.Helpers
             {
                 var relativePath = Path.GetRelativePath(sourcePath, file);
                 var isSkip = false;
-                if (relativePath.IndexOf(@"\") > -1 && ignorePath != null)
+                if (relativePath.IndexOf('\\') > -1 && ignorePath != null)
                     foreach (var item in ignorePath)
                         if (relativePath.StartsWith(item))
                             isSkip = true;
@@ -197,7 +197,7 @@ namespace VP.Common.Helpers
                             isSkip = true;
                 if (!isSkip)
                 {
-                    if (relativePath.IndexOf("\\")>-1)
+                    if (relativePath.IndexOf('\\')>-1)
                         Directory.CreateDirectory(new FileInfo(Path.Combine(targetPath, relativePath)).DirectoryName!);
                     WaitForFileReleaseAsync(Path.Combine(targetPath, Path.GetFileName(file))).ConfigureAwait(false).GetAwaiter().GetResult();
                     File.Copy(file, Path.Combine(targetPath, relativePath), true);
@@ -224,7 +224,7 @@ namespace VP.Common.Helpers
                 var filePath = Path.GetFullPath(Path.Combine(path, deleteFilePath));
                 var relativePath = Path.GetRelativePath(path, filePath);
                 var isSkip = false;
-                if (relativePath.IndexOf(@"\") > -1 && ignorePath != null)
+                if (relativePath.IndexOf('\\') > -1 && ignorePath != null)
                     foreach (var item in ignorePath)
                         if (relativePath.StartsWith(item))
                             isSkip = true;

@@ -64,7 +64,7 @@ namespace VP.Common.Services
                 using var reader = new StreamReader($"/proc/{processId}/stat");
                 var result = reader.ReadToEnd();
                 if (result.IndexOf("No such file or directory")>-1)
-                    throw new ArgumentNullException();
+                    throw new ArgumentNullException($"Can't Find Process Where Id={processId}");
                 string[] fields = result.Split(' ');
                 parentId = Convert.ToInt32(fields[3]);
             }
