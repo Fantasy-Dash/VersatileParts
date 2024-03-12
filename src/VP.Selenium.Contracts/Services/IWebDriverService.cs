@@ -17,8 +17,6 @@ namespace VP.Selenium.Contracts.Services
 
         public TWebDriver? ChangeDriverName(string oldBrowserName, string newBrowserName);
 
-        public void ClearExceptionProcess(bool isDisposing = false);
-
         public void Dispose(string browserName);
     }
 }
