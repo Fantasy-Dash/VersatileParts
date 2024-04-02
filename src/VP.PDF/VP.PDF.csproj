@@ -1,11 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <Platforms>AnyCPU;x86;x64</Platforms>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="PDFiumCore" Version="123.0.6309" />
-  </ItemGroup>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+        <Nullable>enable</Nullable>
+        <Platforms>AnyCPU;x86;x64</Platforms>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="PDFiumCore" Version="123.0.6309" />
+    </ItemGroup>
 </Project>
