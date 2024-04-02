@@ -8,7 +8,7 @@
     <DebugType>none</DebugType>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="3.8.0" />
-    <PackageReference Include="Quartz.Plugins" Version="3.8.0" />
+    <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="3.8.1" />
+    <PackageReference Include="Quartz.Plugins" Version="3.8.1" />
   </ItemGroup>
 </Project>

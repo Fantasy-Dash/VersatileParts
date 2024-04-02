@@ -1,9 +1,8 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Edge;
-using Serilog;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using VP.Common.Services.Interface;
+using VP.Common.Helpers;
 using VP.Selenium.Contracts.Services;
 
 namespace VP.Selenium.Edge.Services
@@ -11,13 +10,11 @@ namespace VP.Selenium.Edge.Services
     /// <summary>
     /// 浏览器驱动服务
     /// </summary>
-    public class EdgeWebDriverService(IProcessService _processService) : IWebDriverService<EdgeDriver, EdgeDriverService>, IDisposable
+    public class EdgeWebDriverService() : IWebDriverService<EdgeDriver, EdgeDriverService>, IDisposable
     {
         public Dictionary<string, EdgeDriver> Drivers { get; } = [];
         private static readonly object _lock = new();
         private readonly Dictionary<EdgeDriver, DriverService> _driverDic = [];
-        private readonly string _processName = "msedge";
-        private readonly string _driverName = "msedgedriver";
 
         public Task<EdgeDriver> CreateAsync(string browserName, DriverOptions driverOptions, DriverService? driverService = null, bool isHideCommandWindow = true, TimeSpan? commandTimeout = null)
         {
@@ -31,16 +28,24 @@ namespace VP.Selenium.Edge.Services
                            throw new ArgumentException($"参数:{nameof(driverOptions)}的类型必须为:{nameof(EdgeOptions)}");
                        commandTimeout??=TimeSpan.FromMinutes(1);
                        var driver = new EdgeDriver((EdgeDriverService)driverService, (EdgeOptions)driverOptions, commandTimeout.Value);
-                       Log.Information("浏览器初始化完成");
                        var capabilitity = (Dictionary<string, object>)driverOptions.ToCapabilities().GetCapability("ms:edgeOptions");
                        _=capabilitity.TryGetValue("args", out var args);
                        _=capabilitity.TryGetValue("prefs", out var prefs);
-                       if (args!=null && ((ReadOnlyCollection<string>)args).Contains("--headless"))
+                       if (args!=null && ((ReadOnlyCollection<string>)args).Where(r => r.StartsWith("--headless")).Any())
                            if (prefs!=null&&((Dictionary<string, object>)prefs).TryGetValue("download.default_directory", out var downloadPath))
                                driver.ExecuteCdpCommand("Page.setDownloadBehavior", new() { { "behavior", "allow" }, { "downloadPath", downloadPath } });
-                       Drivers.Add(browserName, driver);
-                       _driverDic.Add(driver, driverService);
-                       return driver;
+                       try
+                       {
+                           Drivers.Add(browserName, driver);
+                           _driverDic.Add(driver, driverService);
+                           return driver;
+                       }
+                       catch
+                       {
+                           driver.Quit();
+                           driverService.Dispose();
+                           throw;
+                       }
                    }
                });
         }
@@ -70,82 +75,30 @@ namespace VP.Selenium.Edge.Services
             }
         }
 
-        public void ClearExceptionProcess(bool isDisposing = false)
-        {
-            var needKillProcessIList = new List<Process>();
-            var currentProcessList = Process.GetProcesses();
-            var processIdTree = new List<Process>();
-            var browserProcessList = currentProcessList.Where(row => row.ProcessName.Equals(_processName)||row.ProcessName.Equals(_driverName));
-            foreach (var process in browserProcessList)
-            {
-                var cProcess = process;
-            reScanProcess:
-                var parentProcessId = _processService.GetParentProcessId(cProcess!.Id);
-                var parentProcessName = currentProcessList.FirstOrDefault(r => r.Id.Equals(parentProcessId))?.ProcessName??string.Empty;
-                if (parentProcessId<=4)
-                {
-                    processIdTree.Clear();
-                    continue;
-                }
-                else if (parentProcessName.Equals(_processName))
-                {
-                    if (process!=null&&!process.HasExited)
-                        processIdTree.Add(process);
-                    var parentProcess = currentProcessList.FirstOrDefault(r => r.Id.Equals(parentProcessId));
-                    if (parentProcess is null)
-                    {
-                        needKillProcessIList.AddRange(processIdTree);
-                        processIdTree.Clear();
-                        continue;
-                    }
-                    else
-                    {
-                        processIdTree.Add(parentProcess);
-                        cProcess = parentProcess;
-                        goto reScanProcess;
-                    }
-                }
-                else if (parentProcessName.Equals(_driverName))
-                {
-                    if (process!=null&&!process.HasExited)
-                        processIdTree.Add(process);
-                    var pProcessId = _processService.GetParentProcessId(parentProcessId);
-                    var parentProcess = currentProcessList.FirstOrDefault(r => r.Id.Equals(pProcessId));
-                    if (parentProcess is null||isDisposing)
-                    {
-                        needKillProcessIList.AddRange(processIdTree);
-                        processIdTree.Clear();
-                        continue;
-                    }
-                }
-                else if (string.IsNullOrWhiteSpace(parentProcessName))
-                {
-                    var parentProcess = currentProcessList.FirstOrDefault(r => r.Id.Equals(parentProcessId));
-                    if ((parentProcess is null ||parentProcess.HasExited)&&process!=null&&!process.HasExited)
-                    {
-                        processIdTree.Add(process);
-                        needKillProcessIList.AddRange(processIdTree);
-                    }
-                    processIdTree.Clear();
-                }
-                else
-                    processIdTree.Clear();
-            };
-            needKillProcessIList.DistinctBy(r => r.Id).ToList().ForEach(row => row.Kill());
-            processIdTree=null;
-            needKillProcessIList =null;
-            currentProcessList=null;
-        }
-
         public void Dispose()
         {
             lock (_lock)
             {
+                var tree = new List<int>();
+                _driverDic.Values.ToList().ForEach(r =>
+                {
+                    if (r.ProcessId!=0)
+                        tree.AddRange(ProcessHelper.GetProcessesTree(r.ProcessId));
+                });
                 _driverDic.Keys.Distinct().AsParallel().ForAll(item => item.Quit());
                 _driverDic.Values.Distinct().AsParallel().ForAll(item => item.Dispose());
+                tree.AddRange(ProcessHelper.GetProcessesTree([.. tree]).Distinct().ToList());
+                foreach (var item in tree)
+                    try
+                    {
+                        using var proc = Process.GetProcessById(item);
+                        proc.Kill();
+                    }
+                    catch
+                    {
+                    }
                 _driverDic.Clear();
                 Drivers.Clear();
-                ClearExceptionProcess(true);
                 GC.SuppressFinalize(this);
             }
         }
@@ -156,12 +109,22 @@ namespace VP.Selenium.Edge.Services
             {
                 if (Drivers.TryGetValue(browserName, out var driver))
                 {
+                    var pid = _driverDic[driver].ProcessId;
+                    var tree = ProcessHelper.GetProcessesTree(pid);
                     driver.Quit();
-                    driver.Dispose();
+                    tree.AddRange(ProcessHelper.GetProcessesTree([.. tree]).Distinct().ToList());
+                    foreach (var item in tree)
+                        try
+                        {
+                            using var proc = Process.GetProcessById(item);
+                            proc.Kill();
+                        }
+                        catch
+                        {
+                        }
                     _driverDic[driver].Dispose();
                     _driverDic.Remove(driver);
                     Drivers.Remove(browserName);
-                    ClearExceptionProcess();
                 }
             }
         }

@@ -23,6 +23,14 @@ namespace VP.Selenium.Chromium.Extensions
             return opt;
         }
 
+        public static ChromiumOptions AddNewHeadlessArgument(this ChromiumOptions opt, bool isSimulateNotHeadLessArgument = false)
+        {
+            if (isSimulateNotHeadLessArgument)
+                opt.AddArgument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36");
+            opt.AddArgument("--headless=new");//无界面
+            return opt;
+        }
+
         public static ChromiumOptions SetResolutionArgument(this ChromiumOptions opt, int x, int y)
         {
             opt.AddArgument($"window-size={x},{y}");//设置窗口尺寸

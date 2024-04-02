@@ -1,16 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>none</DebugType>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Selenium.Support" Version="4.15.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\VP.Common\VP.Common.csproj" />
-  </ItemGroup>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <DebugType>none</DebugType>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Selenium.Support" Version="4.18.1" />
+        <TrimmerRootAssembly Include="Selenium.Support" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\VP.Common\VP.Common.csproj" />
+    </ItemGroup>
 </Project>

@@ -1,9 +1,8 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using VP.Common.Services.Interface;
+using VP.Common.Helpers;
 using VP.Selenium.Contracts.Services;
 
 namespace VP.Selenium.Chrome.Services
@@ -11,13 +10,11 @@ namespace VP.Selenium.Chrome.Services
     /// <summary>
     /// 浏览器驱动服务
     /// </summary>
-    public class ChromeWebDriverService(IProcessService _processService) : IWebDriverService<ChromeDriver, ChromeDriverService>, IDisposable
+    public class ChromeWebDriverService() : IWebDriverService<ChromeDriver, ChromeDriverService>, IDisposable
     {
         public Dictionary<string, ChromeDriver> Drivers { get; } = [];
         private static readonly object _lock = new();
         private readonly Dictionary<ChromeDriver, DriverService> _driverDic = [];
-        private readonly string _processName = "chrome";
-        private readonly string _driverName = "chromedriver";
 
         public Task<ChromeDriver> CreateAsync(string browserName, DriverOptions driverOptions, DriverService? driverService = null, bool isHideCommandWindow = true, TimeSpan? commandTimeout = null)
         {
@@ -34,7 +31,6 @@ namespace VP.Selenium.Chrome.Services
                        var capabilitity = (Dictionary<string, object>)driverOptions.ToCapabilities().GetCapability("goog:chromeOptions");
                        _=capabilitity.TryGetValue("args", out var args);
                        _=capabilitity.TryGetValue("prefs", out var prefs);
-                       //todo check edge version ↓
                        if (args!=null && ((ReadOnlyCollection<string>)args).Where(r => r.StartsWith("--headless")).Any())
                            if (prefs!=null&&((Dictionary<string, object>)prefs).TryGetValue("download.default_directory", out var downloadPath))
                                driver.ExecuteCdpCommand("Page.setDownloadBehavior", new() { { "behavior", "allow" }, { "downloadPath", downloadPath } });
@@ -87,11 +83,11 @@ namespace VP.Selenium.Chrome.Services
                 _driverDic.Values.ToList().ForEach(r =>
                 {
                     if (r.ProcessId!=0)
-                        tree.AddRange(_processService.GetProcessesTree(r.ProcessId));
+                        tree.AddRange(ProcessHelper.GetProcessesTree(r.ProcessId));
                 });
                 _driverDic.Keys.Distinct().AsParallel().ForAll(item => item.Quit());
                 _driverDic.Values.Distinct().AsParallel().ForAll(item => item.Dispose());
-                tree.AddRange(_processService.GetProcessesTree([.. tree]).Distinct().ToList());
+                tree.AddRange(ProcessHelper.GetProcessesTree([.. tree]).Distinct().ToList());
                 foreach (var item in tree)
                     try
                     {
@@ -114,9 +110,9 @@ namespace VP.Selenium.Chrome.Services
                 if (Drivers.TryGetValue(browserName, out var driver))
                 {
                     var pid = _driverDic[driver].ProcessId;
-                    var tree = _processService.GetProcessesTree(pid);
+                    var tree = ProcessHelper.GetProcessesTree(pid);
                     driver.Quit();
-                    tree.AddRange(_processService.GetProcessesTree([.. tree]).Distinct().ToList());
+                    tree.AddRange(ProcessHelper.GetProcessesTree([.. tree]).Distinct().ToList());
                     foreach (var item in tree)
                         try
                         {

@@ -8,7 +8,14 @@ namespace VP.Windows.Wpf.Converters
     {
         object IValueConverter.Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return ((Enum)value).GetDescription()??string.Empty;
+            try
+            {
+                return ((Enum)value).GetDescription()??string.Empty;
+            }
+            catch (Exception)
+            {
+                return string.Empty;
+            }
         }
         object IValueConverter.ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
