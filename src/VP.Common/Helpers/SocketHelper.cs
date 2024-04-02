@@ -25,13 +25,22 @@ namespace VP.Common.Helpers
 
             return result;
         }
-        public static Socket CreateServer(IPEndPoint iPEndPoint)
+
+
+
+        /// <summary>
+        /// 创建一个TCP服务器套接字并绑定到指定的端点并监听。
+        /// </summary>
+        /// <param name="iPEndPoint">服务器要绑定的本地IP端点。</param>
+        /// <returns>配置好的服务器套接字。</returns>
+        public static Socket CreateServerV4(IPEndPoint iPEndPoint)
         {
             Socket socketServer = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             socketServer.Bind(iPEndPoint);
             socketServer.Listen();
             return socketServer;
         }
+
 
         public static Socket CreateClient(IPEndPoint iPEndPoint)
         {

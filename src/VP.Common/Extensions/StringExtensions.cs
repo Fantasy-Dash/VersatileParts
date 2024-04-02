@@ -9,6 +9,7 @@ namespace VP.Common.Extensions
     {
         /// <param name="value">要编码的 <see cref="string"/></param>
         /// <inheritdoc cref="ByteArrayExtensions.ToSHA256(byte[])"/>
+        /// <inheritdoc cref="Encoding.GetBytes(string)"/>
         public static string ToSHA256(this string? value)
         {
             if (string.IsNullOrEmpty(value)) return string.Empty;
@@ -19,6 +20,26 @@ namespace VP.Common.Extensions
         public static byte[] GetBytes(this string? value)
         {
             return string.IsNullOrEmpty(value) ? [] : Encoding.UTF8.GetBytes(value);
+        }
+
+        /// <summary>
+        /// Return String Is null or empty.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>A bool.</returns>
+        public static bool IsNullOrEmpty(this string? value)
+        {
+            return string.IsNullOrEmpty(value);
+        }
+
+        /// <summary>
+        /// Return String Is null or white space.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>A bool.</returns>
+        public static bool IsNullOrWhiteSpace(this string? value)
+        {
+            return string.IsNullOrWhiteSpace(value);
         }
     }
 }

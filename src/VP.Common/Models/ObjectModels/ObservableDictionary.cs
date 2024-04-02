@@ -21,7 +21,7 @@ namespace VP.Common.Models.ObjectModels
     [DebuggerDisplay("Count = {Count}")]
     public class ObservableDictionary<TKey, TValue>(int capacity, IEqualityComparer<TKey>? comparer) : Dictionary<TKey, TValue>(capacity, comparer), IDictionary, ICollection<KeyValuePair<TKey, TValue>>, INotifyCollectionChanged, INotifyPropertyChanged where TKey : notnull
     {
-        private SimpleMonitor? _monitor; // 仅当子类调用BlockReentrancy() 或 在序列化期间 延迟分配。不要重命名(二进制序列化)
+        private SimpleMonitor?  _monitor; // 仅当子类调用BlockReentrancy() 或 在序列化期间 延迟分配。不要重命名(二进制序列化)
 
         [NonSerialized]
         private int _blockReentrancyCount;
