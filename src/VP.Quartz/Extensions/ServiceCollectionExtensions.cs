@@ -15,7 +15,7 @@ namespace VP.Quartz.Extensions
             {
                 if (options is not null)
                     services.Configure<QuartzOptions>(option => option= options);
-                services.AddQuartz(q => q.UseMicrosoftDependencyInjectionJobFactory());
+                services.AddQuartz();
             }
             services.TryAddSingleton<IQuartzService, QuartzService>();
             return services;

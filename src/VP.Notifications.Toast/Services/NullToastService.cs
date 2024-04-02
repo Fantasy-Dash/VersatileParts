@@ -21,6 +21,6 @@ namespace VP.Notifications.Toast.Services
 
         public void RemoveGroup(string group) { }
 
-        public NotificationUpdateResult UpdateProgress(string id, string group, string title, string status, string percent, string valueString) => NotificationUpdateResult.Succeeded;
+        public NotificationUpdateResult UpdateProgress(string id, string group, string? title, string status, string percent, string valueString) => NotificationUpdateResult.Succeeded;
     }
 }

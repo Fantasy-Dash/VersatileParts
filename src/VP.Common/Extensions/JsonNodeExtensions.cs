@@ -167,25 +167,23 @@ namespace VP.Common.Extensions
         /// <summary>
         /// 获取当前节点下所有Key 使用提供的分隔符做分隔
         /// </summary>
-        /// <param name="node"><see cref="JsonNode"/></param>
-        /// <param name="separator">多层级分隔符</param>
+        /// <param name="node">需要获取Key的<see cref="JsonNode"/></param>
+        /// <param name="separator">分隔符</param>
         /// <returns>返回所有Key的列表</returns>
         public static List<string> GetAllKey(this JsonNode node, string separator = ":")
         {
             var ret = new List<string>();
-            //使用一个返回对象做递归 应该能减小一部分开销
             node.GetAllKey(ref ret, separator);
             return ret;
         }
+
+        /// <param name="ret">返回列表</param>
+        /// <inheritdoc cref="GetAllKey(JsonNode, string)"/>
         private static void GetAllKey(this JsonNode node, ref List<string> ret, string separator = ":")
         {
             if (node.GetType().IsSubclassOf(typeof(JsonArray))
-                || node.GetType().Equals(typeof(JsonArray)))
-            {
-                ret.Add(node.GetPath().Replace(".", separator).Remove(0, 2));
-                return;
-            }
-            if (node.GetType().IsSubclassOf(typeof(JsonValue))
+                || node.GetType().Equals(typeof(JsonArray))
+                || node.GetType().IsSubclassOf(typeof(JsonValue))
                 || node.GetType().Equals(typeof(JsonValue)))
             {
                 ret.Add(node.GetPath().Replace(".", separator).Remove(0, 2));
@@ -206,20 +204,21 @@ namespace VP.Common.Extensions
         /// <param name="isRemoveParentObj">如果父级为空 是否移除父级</param>
         /// <param name="separator">JsonKey中使用的多层级分隔符</param>
         /// <exception cref="JsonException">操作Json异常</exception>
-        public static void Remove(this JsonNode? node, string key, bool isRemoveParentObj = true, string separator = ":")
+        public static void Remove(this JsonNode? node, string key, bool isRemoveEmptyParentObj = true, string separator = ":")
         {
             if (node is null) return;
             var array = key.Split(separator).ToList();
             var cNode = node;
             foreach (var item in array)
                 cNode = cNode?.GetChild(item);
-            cNode = cNode.Parent;
+            if (cNode!=null)
+                cNode = cNode.Parent;
             for (int i = array.Count - 1; i >= 0; i--)
             {
                 if (cNode is null) break;
                 var success = cNode.AsObject().Remove(array[i]);
                 if (!success) throw new JsonException("target=" + cNode.ToJsonString() + "key=" + array[i]);
-                if (cNode.AsObject().Count > 0 || !isRemoveParentObj) break;
+                if (cNode.AsObject().Count > 0 || !isRemoveEmptyParentObj) break;
                 cNode = cNode.Parent;
             }
         }

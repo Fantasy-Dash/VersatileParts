@@ -5,25 +5,20 @@ namespace VP.Notifications.Toast.Models
     /// <summary>
     /// 通知头模型 用于通知分组 设置标题
     /// </summary>
-    public class ToastHeaderModel
+    public class ToastHeaderModel(string id, string title)
     {
-        public ToastHeaderModel(string id, string title)
-        {
-            Id = id;
-            Title = title;
-        }
 
         /// <summary>
         /// 通知头Id 用来分组
         /// </summary>
-        public string Id { get; set; }
+        public string Id { get; set; } = id;
 
         /// <summary>
         /// 通知标题
         /// 以最新一条通知为准
         /// 如最新一条通知被删除则使用次新通知的属性
         /// </summary>
-        public string Title { get; set; }
+        public string Title { get; set; } = title;
 
         /// <summary>
         /// 通知头参数

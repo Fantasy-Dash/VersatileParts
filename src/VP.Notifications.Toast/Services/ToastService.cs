@@ -76,11 +76,11 @@ namespace VP.Notifications.Toast.Services
             Notifier.Show(notification);
         }
 
-        public NotificationUpdateResult UpdateProgress(string id, string group, string title, string status, string percent, string valueString)
+        public NotificationUpdateResult UpdateProgress(string id, string group, string? title, string status, string percent, string valueString)
         {
             var data = new NotificationData();
             data.Values[ToastConst.ProgressBar.Value] = percent;
-            data.Values[ToastConst.ProgressBar.Title]=title;
+            data.Values[ToastConst.ProgressBar.Title]=title??"";
             data.Values[ToastConst.ProgressBar.Status] = status;
             data.Values[ToastConst.ProgressBar.ValueString] = valueString;
             return Notifier.Update(data, id, group);

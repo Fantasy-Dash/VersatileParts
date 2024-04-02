@@ -31,7 +31,7 @@ namespace VP.Notifications.Toast.Services
         /// <param name="percent"></param>
         /// <param name="valueString"></param>
         /// <returns></returns>
-        public NotificationUpdateResult UpdateProgress(string id, string group = ToastConst.DefaultGroup, string title = "", string status = "", string percent = "0", string valueString = "");
+        public NotificationUpdateResult UpdateProgress(string id, string group = ToastConst.DefaultGroup, string? title = "", string status = "", string percent = "0", string valueString = "");
 
         /// <summary>
         /// 移除通知

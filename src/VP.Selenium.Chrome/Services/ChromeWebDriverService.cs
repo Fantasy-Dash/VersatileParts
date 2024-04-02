@@ -1,72 +1,53 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using VP.Common.Services.Interface;
 using VP.Selenium.Contracts.Services;
-using WebDriverManager;
-using WebDriverManager.DriverConfigs.Impl;
-using WebDriverManager.Helpers;
 
 namespace VP.Selenium.Chrome.Services
 {
     /// <summary>
     /// 浏览器驱动服务
     /// </summary>
-    public class ChromeWebDriverService : IWebDriverService<ChromeDriver, ChromeDriverService, ChromeOptions>, IDisposable
+    public class ChromeWebDriverService(IProcessService _processService) : IWebDriverService<ChromeDriver, ChromeDriverService>, IDisposable
     {
-        public Dictionary<string, ChromeDriver> Drivers { get; } = new();
+        public Dictionary<string, ChromeDriver> Drivers { get; } = [];
         private static readonly object _lock = new();
-        private readonly Dictionary<ChromeDriver, ChromeDriverService> _driverDic = new();
-        private readonly IProcessService _processService;
+        private readonly Dictionary<ChromeDriver, DriverService> _driverDic = [];
         private readonly string _processName = "chrome";
+        private readonly string _driverName = "chromedriver";
 
-        public ChromeWebDriverService(IProcessService processService)
+        public Task<ChromeDriver> CreateAsync(string browserName, DriverOptions driverOptions, DriverService? driverService = null, bool isHideCommandWindow = true, TimeSpan? commandTimeout = null)
         {
-            _processService=processService;
-            for (int i = 0; i < 10; i++)
-            {
-                try
-                {
-                    _ = new DriverManager(Path.GetFullPath("WebDriver",
-                                                           AppDomain.CurrentDomain.BaseDirectory))
-                  .SetUpDriver(new ChromeConfig(),
-                               VersionResolveStrategy.MatchingBrowser);
-                    break;
-                }
-                catch { }
-                Task.Delay(500).GetAwaiter().GetResult();
-            }
-        }
-
-        public Task<ChromeDriver> CreateAsync(string browserName, DriverOptions driverOptions, DriverService? driverService = null, bool isHideCommandWindow = true)
-        {
-            //使用第三方包配置驱动
             return Task.Run(() =>
                {
                    lock (_lock)
                    {
-                       var service = ChromeDriverService.CreateDefaultService();
-                       service.HideCommandPromptWindow = isHideCommandWindow;
+                       driverService??=ChromeDriverService.CreateDefaultService();
+                       driverService.HideCommandPromptWindow=isHideCommandWindow;
                        if (driverOptions is not ChromeOptions)
                            throw new ArgumentException($"参数:{nameof(driverOptions)}的类型必须为:{nameof(ChromeOptions)}");
-                       var driver = new ChromeDriver(service, (ChromeOptions)driverOptions);
+                       commandTimeout??=TimeSpan.FromMinutes(1);
+                       var driver = new ChromeDriver((ChromeDriverService)driverService, (ChromeOptions)driverOptions, commandTimeout.Value);
                        var capabilitity = (Dictionary<string, object>)driverOptions.ToCapabilities().GetCapability("goog:chromeOptions");
                        _=capabilitity.TryGetValue("args", out var args);
                        _=capabilitity.TryGetValue("prefs", out var prefs);
-                       if (args!=null && ((ReadOnlyCollection<string>)args).Contains("--headless"))
+                       //todo check edge version ↓
+                       if (args!=null && ((ReadOnlyCollection<string>)args).Where(r => r.StartsWith("--headless")).Any())
                            if (prefs!=null&&((Dictionary<string, object>)prefs).TryGetValue("download.default_directory", out var downloadPath))
                                driver.ExecuteCdpCommand("Page.setDownloadBehavior", new() { { "behavior", "allow" }, { "downloadPath", downloadPath } });
                        try
                        {
                            Drivers.Add(browserName, driver);
-                           _driverDic.Add(driver, service);
+                           _driverDic.Add(driver, driverService);
                            return driver;
                        }
                        catch
                        {
                            driver.Quit();
-                           service.Dispose();
+                           driverService.Dispose();
                            throw;
                        }
                    }
@@ -83,7 +64,7 @@ namespace VP.Selenium.Chrome.Services
         public ChromeDriverService? GetService(ChromeDriver driver)
         {
             if (_driverDic.TryGetValue(driver, out var driverService))
-                return driverService;
+                return driverService as ChromeDriverService;
             return null;
         }
 
@@ -98,61 +79,30 @@ namespace VP.Selenium.Chrome.Services
             }
         }
 
-        public void ClearExceptionProcess()
-        {
-            var needKillProcessList = new List<Process>();
-            var currentProcessList = Process.GetProcesses();
-            var processIdTree = new List<Process>();
-            var a = currentProcessList.Where(row => row.ProcessName.Equals(_processName));
-            var processIdAndParentProcessIdList = _processService.GetProcessIdAndParentProcessIdList(a).ToList();
-            foreach (var item in processIdAndParentProcessIdList)
-            {
-                var processId = item.Key;
-                var parentProcessId = item.Value;
-            reScanProcess:
-                var process = currentProcessList.FirstOrDefault(row => row.Id.Equals(processId));
-                var parentProcess = currentProcessList.FirstOrDefault(row => row.Id.Equals(parentProcessId));
-                if (parentProcess is null||parentProcess.Id<=4||parentProcess.HasExited)
-                {
-                    if (process!=null&&!process.HasExited)
-                        needKillProcessList.Add(process);
-                }
-                else if (parentProcess.ProcessName.Equals(_processName))
-                {
-                    if (process!=null&&!process.HasExited)
-                        processIdTree.Add(process);
-                    processId = parentProcess.Id;
-
-                    var parent = _processService.GetParentProcessId(parentProcess.Id);
-                    if (parent!=0)
-                    {
-                        parentProcessId = parent;
-                        processIdTree.Add(parentProcess);
-                        goto reScanProcess;
-                    }
-                    else
-                        needKillProcessList.Add(parentProcess);
-                }
-                else
-                    processIdTree.Clear();
-            };
-            needKillProcessList.AddRange(processIdTree);
-            needKillProcessList.Distinct().ToList().ForEach(row => row.Kill());
-            processIdAndParentProcessIdList=null;
-            processIdTree=null;
-            needKillProcessList =null;
-            currentProcessList=null;
-        }
-
         public void Dispose()
         {
             lock (_lock)
             {
+                var tree = new List<int>();
+                _driverDic.Values.ToList().ForEach(r =>
+                {
+                    if (r.ProcessId!=0)
+                        tree.AddRange(_processService.GetProcessesTree(r.ProcessId));
+                });
                 _driverDic.Keys.Distinct().AsParallel().ForAll(item => item.Quit());
                 _driverDic.Values.Distinct().AsParallel().ForAll(item => item.Dispose());
+                tree.AddRange(_processService.GetProcessesTree([.. tree]).Distinct().ToList());
+                foreach (var item in tree)
+                    try
+                    {
+                        using var proc = Process.GetProcessById(item);
+                        proc.Kill();
+                    }
+                    catch
+                    {
+                    }
                 _driverDic.Clear();
                 Drivers.Clear();
-                ClearExceptionProcess();
                 GC.SuppressFinalize(this);
             }
         }
@@ -163,14 +113,22 @@ namespace VP.Selenium.Chrome.Services
             {
                 if (Drivers.TryGetValue(browserName, out var driver))
                 {
+                    var pid = _driverDic[driver].ProcessId;
+                    var tree = _processService.GetProcessesTree(pid);
                     driver.Quit();
-                    driver.Dispose();
-                    var serviceCount = _driverDic.Count(row => row.Value.Equals(_driverDic[driver]));
-                    if (serviceCount<=1)
-                        _driverDic[driver].Dispose();
+                    tree.AddRange(_processService.GetProcessesTree([.. tree]).Distinct().ToList());
+                    foreach (var item in tree)
+                        try
+                        {
+                            using var proc = Process.GetProcessById(item);
+                            proc.Kill();
+                        }
+                        catch
+                        {
+                        }
+                    _driverDic[driver].Dispose();
                     _driverDic.Remove(driver);
                     Drivers.Remove(browserName);
-                    ClearExceptionProcess();
                 }
             }
         }

@@ -17,7 +17,7 @@ namespace VP.Common.Helpers
         /// <returns></returns>
         public static bool TryGetValue<T>(string path, string key, out T? value)
         {
-            value = GetValue<T>(path, key);
+            value = GetValueAsync<T>(path, key).Result;
             if (value is string)
                 return !string.IsNullOrWhiteSpace(value as string);
             return value != null;
@@ -28,9 +28,10 @@ namespace VP.Common.Helpers
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public static T? GetValue<T>(string path, string key)
+        public static async Task<T?> GetValueAsync<T>(string path, string key)
         {
-            var jsonNode = FileHelper.ReadToType<JsonNode>(path);
+            var str = await FileHelper.ReadToStringAsync(path)??throw new ArgumentException("文件读取失败", nameof(path));
+            var jsonNode = JsonNode.Parse(str);
             var jsonNodeChild = jsonNode?.GetChild(key);
             return jsonNodeChild is null
                 || jsonNodeChild.ToJsonString().Equals("{}")
@@ -44,11 +45,12 @@ namespace VP.Common.Helpers
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static bool TrySetValue<T>(string path, string key, T value)
+        public static async Task<bool> TrySetValueAsync<T>(string path, string key, T value)
         {
             try
             {
-                JsonNode? jsonNode = FileHelper.ReadToType<JsonNode>(path);
+                var json = await FileHelper.ReadToStringAsync(path)??throw new ArgumentNullException(nameof(path));
+                JsonNode? jsonNode = JsonNode.Parse(json);
                 var ret = jsonNode?.GetChild(key).TrySetValue(value);
                 if (ret is true) jsonNode.WriteTo(path);
                 return ret is true;
@@ -65,9 +67,9 @@ namespace VP.Common.Helpers
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static void SetValue<T>(string path, string key, T value)
+        public static async Task SetValueAsync<T>(string path, string key, T value)
         {
-            if (!TrySetValue(path, key, value))
+            if (!await TrySetValueAsync(path, key, value))
             {
                 throw new Exception("指定配置文件修改异常");
             }
@@ -76,14 +78,18 @@ namespace VP.Common.Helpers
         /// <summary>
         /// 合并json文件
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="filePath">源文件</param>
+        /// <param name="mergeFilePath">要进行合并的文件 会将不同合并到源文件中</param>
         /// <returns></returns>
-        public static bool TryMergeFile(string filePath, string mergeFilePath)
+        public static async Task<bool> TryMergeFileAsync(string filePath, string mergeFilePath)
         {
             try
             {
-                JsonNode? jsonNode = FileHelper.ReadToType<JsonNode>(filePath);
-                JsonNode? mergeJsonNode = FileHelper.ReadToType<JsonNode>(mergeFilePath);
+                var json = await FileHelper.ReadToStringAsync(filePath)??throw new ArgumentNullException(nameof(filePath));
+                var mergeJson = await FileHelper.ReadToStringAsync(mergeFilePath)??throw new ArgumentNullException(nameof(mergeFilePath));
+
+                JsonNode? jsonNode = JsonNode.Parse(json);
+                JsonNode? mergeJsonNode = JsonNode.Parse(mergeJson);
 
                 var skipMergingField = new List<string>();
                 var skipMergingFieldArray = mergeJsonNode?.GetChild("KeepMergingField")?.AsArray();
@@ -102,7 +108,7 @@ namespace VP.Common.Helpers
 
                 return true;
             }
-            catch (Exception)
+            catch
             {
                 return false;
             }

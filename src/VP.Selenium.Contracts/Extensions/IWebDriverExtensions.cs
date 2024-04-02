@@ -1,4 +1,5 @@
 ﻿using OpenQA.Selenium;
+using OpenQA.Selenium.Support.Extensions;
 using OpenQA.Selenium.Support.UI;
 using System.Collections.ObjectModel;
 
@@ -26,6 +27,11 @@ namespace VP.Selenium.Contracts.Extensions
                 }
                 throw new NoSuchElementException();
             });
+        }
+
+        public static void StopPageLoading(this IWebDriver webDriver)
+        {
+            webDriver.ExecuteJavaScript("window.stop();");
         }
     }
 }

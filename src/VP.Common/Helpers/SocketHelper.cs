@@ -7,14 +7,40 @@ namespace VP.Common.Helpers
     //todo 注释
     public static class SocketHelper
     {
+        public static int FindFreePort()
+        {
+            int result = 0;
+            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            try
+            {
+                var localEP = new IPEndPoint(IPAddress.Any, 0);
+                socket.Bind(localEP);
+                localEP = (IPEndPoint)socket.LocalEndPoint!;
+                result = localEP!.Port;
+            }
+            finally
+            {
+                socket.Close();
+            }
 
-        public static Socket CreateServer(IPEndPoint iPEndPoint)
+            return result;
+        }
+
+
+
+        /// <summary>
+        /// 创建一个TCP服务器套接字并绑定到指定的端点并监听。
+        /// </summary>
+        /// <param name="iPEndPoint">服务器要绑定的本地IP端点。</param>
+        /// <returns>配置好的服务器套接字。</returns>
+        public static Socket CreateServerV4(IPEndPoint iPEndPoint)
         {
             Socket socketServer = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             socketServer.Bind(iPEndPoint);
             socketServer.Listen();
             return socketServer;
         }
+
 
         public static Socket CreateClient(IPEndPoint iPEndPoint)
         {
@@ -47,7 +73,7 @@ namespace VP.Common.Helpers
                     throw new TimeoutException();
             }
             byte[] buffer = new byte[4096];
-            byte[] receivedData = Array.Empty<byte>();
+            byte[] receivedData = [];
             int count;
             do
             {
