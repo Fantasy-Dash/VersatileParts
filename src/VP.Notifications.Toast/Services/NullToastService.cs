@@ -1,6 +1,6 @@
-﻿using CommunityToolkit.WinUI.Notifications;
-using VP.Notifications.Toast.Models;
+﻿using VP.Notifications.Toast.Models;
 using Windows.UI.Notifications;
+using CommunityToolkit.WinUI.Notifications;
 
 namespace VP.Notifications.Toast.Services
 {

@@ -32,7 +32,7 @@ namespace VP.Selenium.Contracts.Extensions
         public static string GetText(this IWebElement element)
         {
             ((IWrapsDriver)element).WrappedDriver.ExecuteJavaScript("arguments[0].scrollIntoView({behavior: 'instant', block: 'end', inline: 'nearest'});", element);
-            return element.Text;
+            return element.Text.Trim();
         }
 
         /// <summary>
@@ -43,10 +43,26 @@ namespace VP.Selenium.Contracts.Extensions
         public static void ClickSafely(this IWebElement element)
         {
             if (element is IWrapsDriver e)
-            {
                 e.WrappedDriver.ExecuteJavaScript("arguments[0].scrollIntoView({behavior: 'instant', block: 'end', inline: 'nearest'});", element);
-                e.WrappedDriver.ExecuteJavaScript("arguments[0].click();", element);
+            try
+            {
+                if (element.Enabled&&element.Displayed)
+                {
+                    element.Click();
+                    return;
+                }
+                else element.JsClick();
             }
+            catch
+            {
+                element.JsClick();
+            }
+        }
+
+        private static void JsClick(this IWebElement element)
+        {
+            if (element is IWrapsDriver e)
+                e.WrappedDriver.ExecuteJavaScript("arguments[0].click();", element);
             else
                 throw new NotImplementedException($"{nameof(element)}不支持获取WrappedDriver");
         }

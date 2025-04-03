@@ -1,7 +1,4 @@
-﻿using System.IO;
-using System.Runtime.InteropServices;
-using System.Text.Json.Nodes;
-using VP.Common.Extensions;
+﻿using VP.Common.Extensions;
 
 namespace VP.Common.Helpers
 {
@@ -19,18 +16,13 @@ namespace VP.Common.Helpers
         /// <inheritdoc cref="FileStream(string,FileMode)"/>
         /// <inheritdoc cref="StreamReader(Stream)"/>
         /// <inheritdoc cref="StreamReader.ReadToEndAsync()"/>
-        public static async Task<string?> ReadToStringAsync(string filePath, CancellationToken cancellationToken)
+        public static async Task<string> ReadToStringAsync(string filePath, CancellationToken? cancellationToken = null)
         {
             //todo test
-            using var streamReader = new StreamReader(new FileStream(filePath, FileMode.Open));
-            return await streamReader.ReadToEndAsync(cancellationToken);
+            using var streamReader = new StreamReader(filePath, System.Text.Encoding.UTF8, true, options: new() { Mode=FileMode.Open, Access=FileAccess.Read, Share=FileShare.ReadWrite });
+            streamReader.BaseStream.Seek(0, SeekOrigin.Begin);
+            return await streamReader.ReadToEndAsync(cancellationToken??CancellationToken.None);
         }
-
-        public static async Task<string?> ReadToStringAsync(string filePath)
-        {
-            return await ReadToStringAsync(filePath, CancellationToken.None);
-        }
-
 
         /// <summary>
         /// 文件是否被占用
@@ -62,7 +54,7 @@ namespace VP.Common.Helpers
         /// <returns>可等待任务</returns>
         /// <exception cref="FileNotFoundException">文件不存在: <paramref name="filePath"/> </exception>
         /// <inheritdoc cref="FileStream(string,FileMode,FileAccess,FileShare)"/>
-        public static async Task WaitForFileReleaseAsync(string filePath, CancellationToken cancellationToken, int checkMillisecondsInterval = 1000, bool ignoreFileNotFound = true)
+        public static async Task WaitForFileReleaseAsync(string filePath, CancellationToken? cancellationToken = null, int checkMillisecondsInterval = 1000, bool ignoreFileNotFound = true)
         {
             if (!File.Exists(filePath))
             {
@@ -80,7 +72,9 @@ namespace VP.Common.Helpers
                 }
                 catch (IOException)
                 {
-                    await Task.Delay(checkMillisecondsInterval, cancellationToken);
+                    if (!File.Exists(filePath))
+                        return;
+                    await Task.Delay(checkMillisecondsInterval, cancellationToken??CancellationToken.None);
                 }
             }
         }
@@ -89,20 +83,20 @@ namespace VP.Common.Helpers
         /// 获取文件夹中所有文件
         /// </summary>
         /// <param name="path">目标路径</param>
-        /// <param name="basePath">源目录 用于相对路径拼接</param>
+        /// <param name="ignoreBasePath">源目录 用于相对路径拼接</param>
         /// <param name="ignorePathList">要忽略的目录</param>
         /// <param name="ignoreFileList">要忽略的文件</param>
         /// <returns>文件夹中的所有文件 包含子文件夹中的文件</returns>
         /// <inheritdoc cref="Directory.GetFiles(string, string, EnumerationOptions)"/>
         /// <inheritdoc cref="Path.GetFullPath(string, string)"/>
-        public static IEnumerable<string> GetDirectoryFile(string path, string? basePath = null, ICollection<string>? ignorePathList = null, ICollection<string>? ignoreFileList = null)
+        public static IEnumerable<string> GetDirectoryFile(string path, string? ignoreBasePath = null, ICollection<string>? ignorePathList = null, ICollection<string>? ignoreFileList = null)
         {
             IEnumerable<string> files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
 
-            if (basePath!=null)
+            if (ignoreBasePath!=null)
             {
-                ignorePathList=ignorePathList?.Select(r => Path.GetFullPath(r, basePath)).ToList();
-                ignoreFileList=ignoreFileList?.Select(r => Path.GetFullPath(r, basePath)).ToList();
+                ignorePathList=ignorePathList?.Select(r => Path.GetFullPath(r, ignoreBasePath)).ToList();
+                ignoreFileList=ignoreFileList?.Select(r => Path.GetFullPath(r, ignoreBasePath)).ToList();
             }
             else
             {
@@ -121,21 +115,21 @@ namespace VP.Common.Helpers
         /// </summary>
         /// <param name="sourcePath">源目录</param>
         /// <param name="targetPath">目标目录</param>
-        /// <param name="basePath">源目录 用于相对路径拼接</param>
+        /// <param name="ignoreBasePath">源目录 用于相对路径拼接</param>
         /// <param name="ignorePathList">忽略的子目录</param>
         /// <param name="ignoreFile">忽略的文件</param>
         /// <inheritdoc cref="Directory.CreateDirectory(string)" path="/*[not(name()='returns')]" />
         /// <inheritdoc cref="Path.GetRelativePath(string, string)" path="/*[not(name()='returns')]" />
         /// <inheritdoc cref="File.Copy(string, string)" path="/*[not(name()='returns')]" />
-        public static Task CopyDirectoryFileAsync(string sourcePath, string targetPath, string? basePath = null, ICollection<string>? ignorePathList = null, ICollection<string>? ignoreFileList = null, bool isOverwrite = false)
+        public static Task CopyDirectoryFileAsync(string sourcePath, string targetPath, string? ignoreBasePath = null, ICollection<string>? ignorePathList = null, ICollection<string>? ignoreFileList = null, bool isOverwrite = false)
         {
             Directory.CreateDirectory(sourcePath);
             Directory.CreateDirectory(targetPath);
-            List<string> files = GetDirectoryFile(sourcePath, basePath, ignorePathList, ignoreFileList).ToList();
+            List<string> files = GetDirectoryFile(sourcePath, ignoreBasePath, ignorePathList, ignoreFileList).ToList();
             for (int i = 0; i < files.Count; i++)
             {
                 var targetFilePath = Path.Combine(targetPath, Path.GetRelativePath(sourcePath, files[i]));
-                Directory.CreateDirectory(targetFilePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(targetFilePath)!);
                 File.Copy(files[i], targetFilePath, isOverwrite);
             }
             return Task.CompletedTask;
@@ -146,28 +140,36 @@ namespace VP.Common.Helpers
         /// </summary>
         /// <param name="sourcePath">源目录</param>
         /// <param name="targetPath">目标目录</param>
-        /// <param name="basePath">源目录 用于相对路径拼接</param>
+        /// <param name="ignoreBasePath">源目录 用于相对路径拼接</param>
         /// <param name="ignorePathList">忽略的子目录</param>
         /// <param name="ignoreFileList">忽略的文件</param>
         /// <inheritdoc cref="Directory.CreateDirectory(string)" path="/*[not(name()='returns')]" />
         /// <inheritdoc cref="Path.GetRelativePath(string, string)" path="/*[not(name()='returns')]" />
         /// <inheritdoc cref="WaitForFileReleaseAsync" path="/*[not(name()='returns')]" />
-        public static async Task CutDirectoryFileAsync(string sourcePath, string targetPath, string basePath, ICollection<string>? ignorePathList = null, ICollection<string>? ignoreFileList = null, bool isOverwrite = false)
+        public static async Task CutDirectoryFileAsync(string sourcePath, string targetPath, string? ignoreBasePath = null, ICollection<string>? ignorePathList = null, ICollection<string>? ignoreFileList = null, bool isOverwrite = false)
         {
             Directory.CreateDirectory(sourcePath);
             Directory.CreateDirectory(targetPath);
-            List<string> files = GetDirectoryFile(sourcePath, basePath, ignorePathList, ignoreFileList).ToList();
+            List<string> files = GetDirectoryFile(sourcePath, ignoreBasePath, ignorePathList, ignoreFileList).ToList();
             for (int i = 0; i < files.Count; i++)
             {
                 var targetFilePath = Path.Combine(targetPath, Path.GetRelativePath(sourcePath, files[i]));
-                Directory.CreateDirectory(targetFilePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(targetFilePath)!);
                 await WaitForFileReleaseAsync(Path.Combine(targetPath, Path.GetFileName(files[i])), CancellationToken.None).ConfigureAwait(false);
-                File.Move(files[i], targetFilePath, isOverwrite);
+                try
+                {
+                    File.Move(files[i], targetFilePath, isOverwrite);
+                }
+                catch (Exception)
+                {
+
+                    throw;
+                }
             }
         }
 
         /// <summary>
-        /// 根据给定的命名规则获取一个新文件流
+        /// 根据给定的命名规则获取一个新文件路径
         /// </summary>
         /// <param name="fileName">给定文件路径</param>
         /// <param name="existsFunc">查找文件是否存在的方法</param>
@@ -176,7 +178,7 @@ namespace VP.Common.Helpers
         /// <param name="padLeftWidth">数字补全位数</param>
         /// <returns>新文件流</returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static FileStream GetUniqueFileNameStream(string fileName, Func<string, bool>? existsFunc = null, string template = "({0})", int addition = 2, int padLeftWidth = 0)
+        public static string GetUniqueFileName(string fileName, Func<string, bool>? existsFunc = null, string template = "({0})", int addition = 2, int padLeftWidth = 0)
         {
             existsFunc ??= File.Exists;
             var dir = Path.GetDirectoryName(fileName) ?? string.Empty;
@@ -192,7 +194,7 @@ namespace VP.Common.Helpers
             }
             while (existsFunc(Path.Combine(dir, $"{targetFileName}{additionStr}{targetExtension}")))
             {
-                if (Math.Log10(addition)+1>padLeftWidth)
+                if (padLeftWidth>0&& Math.Log10(addition)+1>padLeftWidth)
                     throw new ArgumentOutOfRangeException(nameof(addition), "超出padLeft位数");
                 if (padLeftWidth!=0)
                     additionStr= string.Format(template, addition.ToString().PadLeft(padLeftWidth, '0'));
@@ -202,8 +204,20 @@ namespace VP.Common.Helpers
             }
             ;
             if (OperatingSystem.IsWindows())
-                return new FileStream(Path.Combine(dir, $"{targetFileName}{additionStr}{targetExtension}"), FileMode.Create, FileAccess.ReadWrite, FileShare.None);
-            return new FileStream(Path.Combine(dir, $"{targetFileName}{additionStr}{targetExtension}").Replace('\\', '/'), FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+                return Path.Combine(dir, $"{targetFileName}{additionStr}{targetExtension}");
+            return Path.Combine(dir, $"{targetFileName}{additionStr}{targetExtension}").Replace('\\', '/');
         }
+
+        /// <summary>
+        /// 根据给定的命名规则获取一个新文件流
+        /// </summary>
+        /// <param name="fileName">给定文件路径</param>
+        /// <param name="existsFunc">查找文件是否存在的方法</param>
+        /// <param name="template">重命名模板</param>
+        /// <param name="addition">重命名开始数字</param>
+        /// <param name="padLeftWidth">数字补全位数</param>
+        /// <returns>新文件流</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static FileStream GetUniqueFileNameStream(string fileName, Func<string, bool>? existsFunc = null, string template = "({0})", int addition = 2, int padLeftWidth = 0) => new(GetUniqueFileName(fileName, existsFunc, template, addition, padLeftWidth), FileMode.Create, FileAccess.ReadWrite, FileShare.None);
     }
 }

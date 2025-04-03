@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Nodes;
+using VP.Common.Consts;
 using VP.Common.Extensions;
 
 namespace VP.Common.Helpers
@@ -17,7 +18,7 @@ namespace VP.Common.Helpers
         /// <returns></returns>
         public static bool TryGetValue<T>(string path, string key, out T? value)
         {
-            value = GetValueAsync<T>(path, key).Result;
+            value =GetValueAsync<T>(path, key).Result;
             if (value is string)
                 return !string.IsNullOrWhiteSpace(value as string);
             return value != null;
@@ -33,10 +34,15 @@ namespace VP.Common.Helpers
             var str = await FileHelper.ReadToStringAsync(path)??throw new ArgumentException("文件读取失败", nameof(path));
             var jsonNode = JsonNode.Parse(str);
             var jsonNodeChild = jsonNode?.GetChild(key);
-            return jsonNodeChild is null
-                || jsonNodeChild.ToJsonString().Equals("{}")
-                ? default
-                : jsonNodeChild.GetValue<T>();
+            if (jsonNodeChild is null
+                || jsonNodeChild.ToJsonString().Equals(JsonConst.Empty))
+            {
+                return default;
+            }
+            else
+            {
+                return jsonNodeChild.GetValue<T>();
+            }
         }
 
         /// <summary>

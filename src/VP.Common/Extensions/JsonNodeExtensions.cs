@@ -72,9 +72,9 @@ namespace VP.Common.Extensions
         /// <param name="jsonNode">Json节点</param>
         /// <param name="jsonValue">Json值</param>
         /// <returns>返回是否设置成功的布尔值</returns>
-        public static bool TrySetValue<T>(this JsonNode? jsonNode, T? jsonValue)
+        public static bool TrySetValue<T>(this JsonNode? jsonNode, T? jsonValue, JsonNodeOptions? options = null)
         {
-            return jsonNode.SetValue(jsonValue) != null;
+            return jsonNode.SetValue(jsonValue, options) != null;
         }
 
         /// <summary>
@@ -83,21 +83,24 @@ namespace VP.Common.Extensions
         /// <param name="jsonNode">Json节点</param>
         /// <param name="jsonValue">Json值</param>
         /// <returns>返回Json节点</returns>
-        public static JsonNode? SetValue<T>(this JsonNode? jsonNode, T? jsonValue)
+        public static JsonNode? SetValue<T>(this JsonNode? jsonNode, T? jsonValue, JsonNodeOptions? options = null) //where T : struct //: JsonNode, long,sbyte,float,JsonElement,ushort,uint,ulong,string,int,short,Guid,double,bool,byte,char,DateTimeOffset,DateTime,decimal
         {
             if (jsonNode == null || jsonNode.Parent == null || jsonValue == null) return null;
             if (typeof(T).IsSubclassOf(typeof(JsonNode)))
             {
                 if (typeof(T).Equals(typeof(JsonArray)))
-                    jsonNode.Parent[jsonNode.GetKey()] = (JsonArray)(object)jsonValue;
+                    jsonNode.Parent[jsonNode.GetKey()] = (JsonArray?)(object?)jsonValue;
                 if (typeof(T).Equals(typeof(JsonValue)))
-                    jsonNode.Parent[jsonNode.GetKey()] = (JsonValue)(object)jsonValue;
+                    jsonNode.Parent[jsonNode.GetKey()] = (JsonValue?)(object?)jsonValue;
                 if (typeof(T).Equals(typeof(JsonObject)))
-                    jsonNode.Parent[jsonNode.GetKey()] = (JsonObject)(object)jsonValue;
+                    jsonNode.Parent[jsonNode.GetKey()] = (JsonObject?)(object?)jsonValue;
             }
             else
-                jsonNode.Parent[jsonNode.GetKey()] = JsonValue.Create(jsonValue);
+            {
+                jsonNode.Parent[jsonNode.GetKey()] = JsonValue.Create((object)jsonValue);
 
+            }
+            ;
             return jsonNode;
         }
 

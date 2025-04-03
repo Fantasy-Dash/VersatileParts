@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace VP.Common.Extensions
@@ -43,7 +44,7 @@ namespace VP.Common.Extensions
         /// <exception cref="AmbiguousMatchException">无法匹配到属性</exception>
         /// <inheritdoc cref="GetDescription(MemberInfo, string, bool)"/>
         /// <inheritdoc cref="Type.GetProperty(string)"/>
-        public static string? GetDescription(this Type type, string propertyName, bool nameInstead = true)
+        public static string? GetDescription([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] this Type type, string propertyName, bool nameInstead = true)
         {
             var pro = type.GetProperty(propertyName);
             return pro != null ? pro.GetDescription(propertyName, nameInstead) : propertyName;

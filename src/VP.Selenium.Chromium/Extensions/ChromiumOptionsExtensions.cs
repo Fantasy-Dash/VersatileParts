@@ -106,6 +106,7 @@ namespace VP.Selenium.Chromium.Extensions
             {
                 opt.AddUserProfilePreference("safebrowsing.enabled", false);
                 opt.AddUserProfilePreference("safebrowsing.disable_download_protection", true);
+                opt.AddArgument("--disable-features=InsecureDownloadWarnings");
             }
             return opt;
         }

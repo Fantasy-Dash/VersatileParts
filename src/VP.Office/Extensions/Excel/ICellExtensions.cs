@@ -19,12 +19,17 @@ namespace VP.Office.Extensions.Excel
                 catch { }
                 try
                 {
-                    if (cell.DateCellValue.TimeOfDay==TimeSpan.Zero)
-                        ret= cell.DateCellValue.ToShortDateString();
-                    else if (cell.DateCellValue.Date.Equals(DateTime.MinValue))
-                        ret= cell.DateCellValue.ToShortTimeString();
+                    if (cell.DateCellValue.HasValue)
+                    {
+                        if (cell.DateCellValue.Value.TimeOfDay==TimeSpan.Zero)
+                            ret= cell.DateCellValue.Value.ToShortDateString();
+                        else if (cell.DateCellValue.Value.Equals(DateTime.MinValue))
+                            ret= cell.DateCellValue.Value.ToShortTimeString();
+                        else
+                            ret=cell.DateCellValue.Value.ToString();
+                    }
                     else
-                        ret=cell.DateCellValue.ToString();
+                        ret=string.Empty;
                     return ret;
                 }
                 catch { }

@@ -2,6 +2,7 @@
 using OpenQA.Selenium.Edge;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+
 using VP.Common.Helpers;
 using VP.Selenium.Contracts.Services;
 
@@ -13,7 +14,7 @@ namespace VP.Selenium.Edge.Services
     public class EdgeWebDriverService() : IWebDriverService<EdgeDriver, EdgeDriverService>, IDisposable
     {
         public Dictionary<string, EdgeDriver> Drivers { get; } = [];
-        private static readonly object _lock = new();
+        private static readonly Lock _lock = new();
         private readonly Dictionary<EdgeDriver, DriverService> _driverDic = [];
 
         public Task<EdgeDriver> CreateAsync(string browserName, DriverOptions driverOptions, DriverService? driverService = null, bool isHideCommandWindow = true, TimeSpan? commandTimeout = null)

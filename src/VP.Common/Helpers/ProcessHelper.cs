@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics;
-using System.Management;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using System.Text;
+using System.Text.RegularExpressions;
+using WmiLight;
 
 namespace VP.Common.Helpers
 {
@@ -34,9 +34,8 @@ namespace VP.Common.Helpers
                 try
                 {
                     // 在 Windows 平台上使用 WMI 获取命令行参数
-                    using var searcher = new ManagementObjectSearcher($"SELECT ProcessId FROM Win32_Process WHERE CommandLine Like '%{filter}%'");
-                    using var QueryList = searcher.Get();
-                    foreach (var item in QueryList)
+                    using var con = new WmiConnection();
+                    foreach (var item in con.CreateQuery($"SELECT ProcessId FROM Win32_Process WHERE CommandLine Like '%{filter}%'"))
                         processIdList.Add(Convert.ToInt32(item["ProcessId"]));
                 }
                 catch (NullReferenceException) { }
@@ -68,8 +67,8 @@ namespace VP.Common.Helpers
             int parentId = 0;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                using var searcher = new ManagementObjectSearcher($"SELECT ParentProcessId FROM Win32_Process WHERE ProcessId = {processId}");
-                foreach (ManagementObject obj in searcher.Get().Cast<ManagementObject>())
+                using var con = new WmiConnection();
+                foreach (var obj in con.CreateQuery($"SELECT ParentProcessId FROM Win32_Process WHERE ProcessId = {processId}"))
                 {
                     parentId = Convert.ToInt32(obj["ParentProcessId"]);
                     break;
@@ -96,8 +95,8 @@ namespace VP.Common.Helpers
                 {
                     var sb = new StringBuilder(" ProcessId ="+processIdList.First());
                     processIdList.Skip(1).ToList().ForEach(row => sb.Append(" OR ProcessId ="+row));
-                    using var searcher = new ManagementObjectSearcher($"SELECT ProcessId,ParentProcessId FROM Win32_Process WHERE {sb}");
-                    foreach (ManagementObject obj in searcher.Get().Cast<ManagementObject>())
+                    using var con = new WmiConnection();
+                    foreach (var obj in con.CreateQuery($"SELECT ProcessId,ParentProcessId FROM Win32_Process WHERE {sb}"))
                         ret.Add(Convert.ToInt32(obj["ProcessId"]), Convert.ToInt32(obj["ParentProcessId"]));
                 }
             }
@@ -116,14 +115,13 @@ namespace VP.Common.Helpers
             var processDic = new Dictionary<int, int>();
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                using var searcher = new ManagementObjectSearcher($"SELECT ProcessId,ParentProcessId FROM Win32_Process");
-                foreach (ManagementObject obj in searcher.Get().Cast<ManagementObject>())
+                using var con = new WmiConnection();
+                foreach (var obj in con.CreateQuery($"SELECT ProcessId,ParentProcessId FROM Win32_Process"))
                 {
                     var ppid = Convert.ToInt32(obj["ParentProcessId"]);
                     var pid = Convert.ToInt32(obj["ProcessId"]);
                     processDic.Add(pid, ppid);
                 }
-
             }
             else
             {

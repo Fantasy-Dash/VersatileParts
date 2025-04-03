@@ -2,6 +2,7 @@
 using OpenQA.Selenium.Chrome;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+
 using VP.Common.Helpers;
 using VP.Selenium.Contracts.Services;
 
@@ -13,7 +14,7 @@ namespace VP.Selenium.Chrome.Services
     public class ChromeWebDriverService() : IWebDriverService<ChromeDriver, ChromeDriverService>, IDisposable
     {
         public Dictionary<string, ChromeDriver> Drivers { get; } = [];
-        private static readonly object _lock = new();
+        private static readonly Lock _lock = new();
         private readonly Dictionary<ChromeDriver, DriverService> _driverDic = [];
 
         public Task<ChromeDriver> CreateAsync(string browserName, DriverOptions driverOptions, DriverService? driverService = null, bool isHideCommandWindow = true, TimeSpan? commandTimeout = null)

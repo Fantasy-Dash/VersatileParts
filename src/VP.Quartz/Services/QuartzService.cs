@@ -107,7 +107,6 @@ namespace VP.Quartz.Services
 
         public async Task<DateTimeOffset> ScheduleTriggerAsync(IScheduler scheduler, IJobDetail job, ITrigger trigger) => await scheduler.ScheduleJob(trigger);
 
-#pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
         public void Dispose() => Dispose(false);
 
         public void Dispose(bool waitForJobsToComplete)
@@ -119,6 +118,5 @@ namespace VP.Quartz.Services
                                 .GetAwaiter().GetResult());
             GC.SuppressFinalize(this);
         }
-#pragma warning restore CA1816 // Dispose methods should call SuppressFinalize
     }
 }

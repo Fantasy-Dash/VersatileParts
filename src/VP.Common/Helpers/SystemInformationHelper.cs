@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Management;
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+using WmiLight;
 
 namespace VP.Common.Helpers
 {
@@ -14,23 +9,19 @@ namespace VP.Common.Helpers
     /// </summary>
     public static class SystemInformationHelper
     {
-        public static DateTime GetSystemInstallTime()
+        public static DateTime GetUTCSystemInstallTime()
         {
             DateTime installTime = DateTime.MinValue;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // 获取Windows系统安装时间
-                var scope = new ManagementScope(@"\\localhost\root\cimv2");
-                var query = new ObjectQuery("SELECT * FROM Win32_OperatingSystem");
-                using var searcher = new ManagementObjectSearcher(scope, query);
-                using var queryCollection = searcher.Get();
-                foreach (var m in queryCollection)
+                using var con = new WmiConnection("root\\cimv2");
+                foreach (var m in con.CreateQuery("SELECT * FROM Win32_OperatingSystem"))
                 {
                     var dateTimeStr = m["InstallDate"].ToString();
                     if (!string.IsNullOrWhiteSpace(dateTimeStr))
-                        return ManagementDateTimeConverter.ToDateTime(dateTimeStr);
+                        installTime=DateTimeHelper.DMTFToUTCDateTime(dateTimeStr);
                 }
-                return installTime;
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
@@ -70,7 +61,7 @@ namespace VP.Common.Helpers
                     }
                 }
             }
-            return installTime;
+            return installTime.ToUniversalTime();
         }
 
         public static string GetUUID()
@@ -78,14 +69,11 @@ namespace VP.Common.Helpers
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 string uuid = string.Empty;
-                var query = new SelectQuery("Win32_ComputerSystemProduct");
-                using var searcher = new ManagementObjectSearcher(query);
-                using var queryCollection = searcher.Get();
-                foreach (var item in queryCollection)
-                    if (item["UUID"] != null)
-                        uuid= item["UUID"].ToString()??string.Empty;
+                using var con = new WmiConnection();
+                foreach (var item in con.CreateQuery($"SELECT UUID FROM Win32_ComputerSystemProduct"))
+                    uuid= item["UUID"].ToString()??string.Empty;
                 if (string.IsNullOrWhiteSpace(uuid))
-                    throw new ManagementException();
+                    throw new ArgumentException();
                 return uuid;
             }
             else

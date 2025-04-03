@@ -49,11 +49,41 @@ namespace VP.Windows.Wpf
         public static bool? ShowWindowDialogWithSTAThread<TWindowType>(IServiceProvider serviceProvider) where TWindowType : Window
         {
             var taskCompletionSource = new TaskCompletionSource<bool?>();
-            var thread = new Thread(() => taskCompletionSource.SetResult(serviceProvider.GetRequiredService<TWindowType>().ShowDialog()));
-            thread.SetApartmentState(ApartmentState.STA);
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    taskCompletionSource.SetResult(serviceProvider.GetRequiredService<TWindowType>().ShowDialog());
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            });
+            thread.TrySetApartmentState(ApartmentState.STA);
             thread.Start();
             thread.Join();
             return taskCompletionSource.Task.Result;
+        }
+
+        public static Task<TResult> InvokeSTAAsync<TResult>(Func<TResult> action)
+        {
+            var taskCompletionSource = new TaskCompletionSource<TResult>();
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    taskCompletionSource.SetResult(action.Invoke());
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            });
+            thread.TrySetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            return taskCompletionSource.Task;
         }
 
         public static void Shutdown()
